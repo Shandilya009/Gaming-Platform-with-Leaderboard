@@ -6,10 +6,11 @@ import axios from "axios";
  */
 
 // Determine API base URL based on environment
-const API_BASE_URL =
-  process.env.NODE_ENV === "production"
-    ? "https://gaming-platfrom-with-leaderboard.onrender.com"
-    : "http://localhost:5001";
+// Use Vite's import.meta.env for environment variables
+const API_BASE_URL = import.meta.env.VITE_API_URL || 
+  (import.meta.env.PROD 
+    ? "https://gaming-platform-backend-api.onrender.com"
+    : "http://localhost:5001");
 
 // Create axios instance with default configuration
 const api = axios.create({

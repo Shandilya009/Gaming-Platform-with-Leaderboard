@@ -1,8 +1,11 @@
 {
-  "name": "backend",
+  "name": "gaming-platform-backend",
   "version": "1.0.0",
   "main": "index.js",
   "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "start": "node index.js",
     "dev": "node --watch index.js",
@@ -11,10 +14,10 @@
     "setup-atlas": "node setup-atlas.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "keywords": ["gaming", "leaderboard", "mern", "express", "mongodb"],
+  "author": "Shandilya009",
+  "license": "MIT",
+  "description": "Backend API for Gaming Platform with Leaderboard",
   "dependencies": {
     "@types/express": "^5.0.6",
     "bcryptjs": "^3.0.3",
