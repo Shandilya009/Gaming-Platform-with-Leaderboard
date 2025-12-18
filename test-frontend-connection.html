@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Frontend-Backend Connection Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #1a1a1a; color: white; }
+        .test-result { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #10b981; }
+        .error { background: #ef4444; }
+        .info { background: #3b82f6; }
+        button { padding: 10px 20px; margin: 5px; border: none; border-radius: 5px; cursor: pointer; }
+        .btn-primary { background: #6366f1; color: white; }
+        .btn-success { background: #10b981; color: white; }
+        pre { background: #2d2d2d; padding: 10px; border-radius: 5px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🎮 Gaming Platform Connection Test</h1>
+    
+    <div class="test-result info">
+        <strong>Frontend:</strong> http://localhost:5174<br>
+        <strong>Backend:</strong> http://localhost:5000
+    </div>
+
+    <button class="btn-primary" onclick="testBackendHealth()">Test Backend Health</button>
+    <button class="btn-primary" onclick="testGetGames()">Test Get Games</button>
+    <button class="btn-success" onclick="testLogin()">Test Login (player1)</button>
+
+    <div id="results"></div>
+
+    <script>
+        const resultsDiv = document.getElementById('results');
+
+        function addResult(title, success, data) {
+            const div = document.createElement('div');
+            div.className = `test-result ${success ? 'success' : 'error'}`;
+            div.innerHTML = `
+                <h3>${success ? '✅' : '❌'} ${title}</h3>
+                <pre>${JSON.stringify(data, null, 2)}</pre>
+            `;
+            resultsDiv.appendChild(div);
+        }
+
+        async function testBackendHealth() {
+            try {
+                const response = await fetch('http://localhost:5000');
+                const data = await response.json();
+                addResult('Backend Health Check', true, data);
+            } catch (error) {
+                addResult('Backend Health Check', false, { error: error.message });
+            }
+        }
+
+        async function testGetGames() {
+            try {
+                const response = await fetch('http://localhost:5000/games');
+                const data = await response.json();
+                addResult('Get Games', true, { count: data.length, games: data.map(g => g.name) });
+            } catch (error) {
+                addResult('Get Games', false, { error: error.message });
+            }
+        }
+
+        async function testLogin() {
+            try {
+                const response = await fetch('http://localhost:5000/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: 'player1@example.com',
+                        password: 'password123'
+                    })
+                });
+                const data = await response.json();
+                addResult('Login Test', response.ok, {
+                    status: response.status,
+                    message: data.message,
+                    user: data.user ? data.user.username : 'No user data'
+                });
+            } catch (error) {
+                addResult('Login Test', false, { error: error.message });
+            }
+        }
+
+        // Auto-test on load
+        window.onload = function() {
+            setTimeout(testBackendHealth, 500);
+            setTimeout(testGetGames, 1000);
+        };
+    </script>
+</body>
+</html>
