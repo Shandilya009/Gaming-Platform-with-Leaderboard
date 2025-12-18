@@ -139,8 +139,11 @@ function AppContent() {
  * 3. AppContent - Contains the actual routing and layout logic
  */
 function App() {
+  // Use basename for GitHub Pages deployment
+  const basename = import.meta.env.PROD ? '/Gaming-Platform-with-Leaderboard' : '';
+  
   return (
-    <Router>
+    <Router basename={basename}>
       <AuthProvider>
         <AppContent />
       </AuthProvider>
