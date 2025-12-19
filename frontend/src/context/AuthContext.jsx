@@ -170,6 +170,22 @@ export const AuthProvider = ({ children }) => {
     console.log(`User earned ${points} points. New total: ${updatedUser.totalPoints}`);
   };
 
+  /**
+   * Refresh user data from localStorage
+   * Used to sync user data after updates from other components
+   */
+  const refreshUser = () => {
+    try {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
+      }
+    } catch (error) {
+      console.error('Error refreshing user data:', error);
+    }
+  };
+
   // Context value object containing all auth-related data and functions
   const contextValue = {
     user,                           // Current user data (null if not logged in)
@@ -177,6 +193,7 @@ export const AuthProvider = ({ children }) => {
     register,                       // Registration function
     logout,                         // Logout function
     updateUserPoints,               // Update user points function
+    refreshUser,                    // Refresh user data function
     isAuthenticated: !!user         // Boolean: true if user is logged in
   };
 

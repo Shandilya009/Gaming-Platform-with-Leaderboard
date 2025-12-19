@@ -1,36 +1,31 @@
 import { useAuth } from "../context/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { scoresAPI } from "../api/api";
 import "./MyScores.css";
 
 /**
- * MyScores Component
- * Comprehensive analytics dashboard showing:
- * - Latest score summary with breakdown
- * - Skill impact metrics (focus, reflex, accuracy, consistency)
- * - Progress tracking and improvement indicators
- * - Leaderboard rank and points to next rank
+ * MyScores Component - Interactive Real-Time Analytics Dashboard
  */
 function MyScores() {
-  const { user, logout } = useAuth();
+  const { user, logout, refreshUser } = useAuth();
   const navigate = useNavigate();
 
   const [analytics, setAnalytics] = useState(null);
   const [rankData, setRankData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState(new Date());
+  const [selectedGame, setSelectedGame] = useState('all');
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
-  useEffect(() => {
-    loadAnalytics();
-  }, []);
-
-  const loadAnalytics = async () => {
+  const loadAnalytics = useCallback(async (showRefreshing = false) => {
+    if (showRefreshing) setRefreshing(true);
     try {
       const [analyticsRes, rankRes] = await Promise.all([
         scoresAPI.getUserAnalytics(),
@@ -38,12 +33,32 @@ function MyScores() {
       ]);
       setAnalytics(analyticsRes.data);
       setRankData(rankRes.data);
+      setLastUpdated(new Date());
+      if (refreshUser) refreshUser();
     } catch (error) {
       console.error("Error loading analytics:", error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  };
+  }, [refreshUser]);
+
+  useEffect(() => {
+    loadAnalytics();
+    
+    // Auto-refresh when window gains focus
+    const handleFocus = () => loadAnalytics(true);
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [loadAnalytics]);
+
+  // Filter scores by selected game
+  const filteredScores = analytics?.recentScores?.filter(score => 
+    selectedGame === 'all' || score.gameId?.name === selectedGame
+  ) || [];
+
+  // Get unique game names for filter
+  const gameNames = [...new Set(analytics?.recentScores?.map(s => s.gameId?.name).filter(Boolean) || [])];
 
   if (loading) {
     return (
@@ -58,7 +73,6 @@ function MyScores() {
 
   return (
     <div className="myscores-layout">
-      {/* Sidebar */}
       <aside className={`myscores-sidebar ${sidebarOpen ? "open" : "closed"}`}>
         <div className="sidebar-header">
           <div className="logo-section">
@@ -112,13 +126,22 @@ function MyScores() {
         )}
       </aside>
 
-      {/* Main Content */}
       <main className="myscores-main">
         <div className="myscores-header">
           <div className="header-content">
             <h1>📈 My Score Analytics</h1>
-            <p className="header-subtitle">Track your performance and improvement</p>
+            <p className="header-subtitle">
+              Track your performance and improvement
+              <span className="last-updated-text"> • Updated: {lastUpdated.toLocaleTimeString()}</span>
+            </p>
           </div>
+          <button 
+            className={`btn-refresh ${refreshing ? 'spinning' : ''}`} 
+            onClick={() => loadAnalytics(true)}
+            disabled={refreshing}
+          >
+            🔄 {refreshing ? 'Refreshing...' : 'Refresh'}
+          </button>
         </div>
 
         {!hasScores ? (
@@ -164,7 +187,6 @@ function MyScores() {
 
             {/* Score Breakdown & Skill Impact */}
             <div className="analytics-grid">
-              {/* Score Breakdown */}
               <div className="analytics-card breakdown-card">
                 <h3>📊 Score Breakdown</h3>
                 <p className="card-subtitle">How your final score is calculated</p>
@@ -175,7 +197,10 @@ function MyScores() {
                     <span className="breakdown-value">{analytics.stats?.avgSpeed || 0}</span>
                   </div>
                   <div className="progress-bar">
-                    <div className="progress-fill speed" style={{ width: `${analytics.stats?.avgSpeed || 0}%` }}></div>
+                    <div 
+                      className="progress-fill speed" 
+                      style={{ width: `${analytics.stats?.avgSpeed || 0}%`, transition: 'width 0.5s ease' }}
+                    ></div>
                   </div>
                 </div>
 
@@ -185,7 +210,10 @@ function MyScores() {
                     <span className="breakdown-value">{analytics.stats?.avgAccuracy || 0}</span>
                   </div>
                   <div className="progress-bar">
-                    <div className="progress-fill accuracy" style={{ width: `${analytics.stats?.avgAccuracy || 0}%` }}></div>
+                    <div 
+                      className="progress-fill accuracy" 
+                      style={{ width: `${analytics.stats?.avgAccuracy || 0}%`, transition: 'width 0.5s ease' }}
+                    ></div>
                   </div>
                 </div>
 
@@ -195,7 +223,10 @@ function MyScores() {
                     <span className="breakdown-value">{analytics.stats?.avgConsistency || 0}</span>
                   </div>
                   <div className="progress-bar">
-                    <div className="progress-fill consistency" style={{ width: `${analytics.stats?.avgConsistency || 0}%` }}></div>
+                    <div 
+                      className="progress-fill consistency" 
+                      style={{ width: `${analytics.stats?.avgConsistency || 0}%`, transition: 'width 0.5s ease' }}
+                    ></div>
                   </div>
                 </div>
 
@@ -205,7 +236,6 @@ function MyScores() {
                 </div>
               </div>
 
-              {/* Skill Impact */}
               <div className="analytics-card skill-card">
                 <h3>🧠 Skill Impact</h3>
                 <p className="card-subtitle">Your cognitive performance metrics</p>
@@ -241,7 +271,6 @@ function MyScores() {
 
             {/* Rank & Recent Scores */}
             <div className="analytics-grid">
-              {/* Leaderboard Impact */}
               <div className="analytics-card rank-card">
                 <h3>🏅 Leaderboard Impact</h3>
                 <div className="rank-display">
@@ -263,7 +292,8 @@ function MyScores() {
                         <div 
                           className="progress-fill rank" 
                           style={{ 
-                            width: `${Math.min(100, (rankData.totalPoints / rankData.nextRankPoints) * 100)}%` 
+                            width: `${Math.min(100, (rankData.totalPoints / rankData.nextRankPoints) * 100)}%`,
+                            transition: 'width 0.5s ease'
                           }}
                         ></div>
                       </div>
@@ -272,22 +302,36 @@ function MyScores() {
                 </div>
               </div>
 
-              {/* Recent Scores */}
               <div className="analytics-card recent-card">
-                <h3>🕐 Recent Scores</h3>
+                <div className="card-header-with-filter">
+                  <h3>🕐 Recent Scores</h3>
+                  <select 
+                    className="game-filter"
+                    value={selectedGame}
+                    onChange={(e) => setSelectedGame(e.target.value)}
+                  >
+                    <option value="all">All Games</option>
+                    {gameNames.map(name => (
+                      <option key={name} value={name}>{name}</option>
+                    ))}
+                  </select>
+                </div>
                 <div className="recent-list">
-                  {analytics.recentScores?.slice(0, 5).map((score, index) => (
+                  {filteredScores.slice(0, 5).map((score, index) => (
                     <div key={score._id} className="recent-item">
                       <div className="recent-rank">{index + 1}</div>
                       <div className="recent-info">
                         <span className="recent-game">{score.gameId?.name || "Game"}</span>
                         <span className="recent-date">
-                          {new Date(score.createdAt).toLocaleDateString()}
+                          {new Date(score.createdAt).toLocaleDateString()} {new Date(score.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                         </span>
                       </div>
                       <div className="recent-score">{score.finalScore || score.score} pts</div>
                     </div>
                   ))}
+                  {filteredScores.length === 0 && (
+                    <div className="empty-filter">No scores for this game yet</div>
+                  )}
                 </div>
               </div>
             </div>
@@ -304,6 +348,15 @@ function MyScores() {
                         <span className="game-plays">{game.plays} plays</span>
                         <span className="game-best">Best: {game.bestScore}</span>
                         <span className="game-avg">Avg: {Math.round(game.totalScore / game.plays)}</span>
+                      </div>
+                      <div className="game-progress-bar">
+                        <div 
+                          className="game-progress-fill"
+                          style={{ 
+                            width: `${Math.min(100, (game.bestScore / (analytics.bestScore?.score || 100)) * 100)}%`,
+                            transition: 'width 0.5s ease'
+                          }}
+                        ></div>
                       </div>
                     </div>
                   ))}
