@@ -10,18 +10,21 @@
     "start": "node index.js",
     "dev": "node --watch index.js",
     "seed": "node seed.js",
-    "test-connection": "node test-connection.js",
-    "setup-atlas": "node setup-atlas.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["gaming", "leaderboard", "mern", "express", "mongodb"],
+  "keywords": [
+    "gaming",
+    "leaderboard",
+    "mern",
+    "express",
+    "mongodb"
+  ],
   "author": "Shandilya009",
   "license": "MIT",
   "description": "Backend API for Gaming Platform with Leaderboard",
   "dependencies": {
     "@types/express": "^5.0.6",
     "bcryptjs": "^3.0.3",
-    "chalk": "^5.6.2",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
