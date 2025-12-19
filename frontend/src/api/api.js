@@ -5,8 +5,8 @@ import axios from "axios";
  * Centralized API client setup for the gaming platform frontend
  */
 
-// API Configuration for local development
-const API_BASE_URL = "http://localhost:5001";
+// API Configuration - supports both local and production
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
 
 // Create axios instance with default configuration
 const api = axios.create({
