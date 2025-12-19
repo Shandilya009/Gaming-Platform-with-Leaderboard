@@ -142,6 +142,15 @@ function MyScores() {
             <span className="nav-icon">📈</span>
             {sidebarOpen && <span className="nav-text">My Scores</span>}
           </Link>
+          {user.role === 'admin' && (
+            <>
+              <div className="nav-divider"></div>
+              <Link to="/admin" className="nav-item nav-item-admin">
+                <span className="nav-icon">⚙️</span>
+                {sidebarOpen && <span className="nav-text">Admin Panel</span>}
+              </Link>
+            </>
+          )}
         </nav>
 
         {sidebarOpen && (

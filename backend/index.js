@@ -8,6 +8,7 @@ import dotenv from "dotenv";
 import authRoutes from "./routes/auth.js";
 import gameRoutes from "./routes/games.js";
 import scoreRoutes from "./routes/scores.js";
+import adminRoutes from "./routes/admin.js";
 
 // Load environment variables
 dotenv.config();
@@ -113,6 +114,9 @@ app.use("/games", gameRoutes);
 
 // Score and leaderboard routes: /scores
 app.use("/scores", scoreRoutes);
+
+// Admin routes: /admin
+app.use("/admin", adminRoutes);
 
 // 404 Handler
 app.use((req, res) => {

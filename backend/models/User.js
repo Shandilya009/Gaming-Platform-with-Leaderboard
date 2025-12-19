@@ -41,6 +41,26 @@ const userSchema = new mongoose.Schema({
     min: 0
   },
   
+  // User role (user or admin)
+  role: {
+    type: String,
+    enum: ['user', 'admin'],
+    default: 'user'
+  },
+  
+  // Account status
+  status: {
+    type: String,
+    enum: ['active', 'banned', 'suspended'],
+    default: 'active'
+  },
+  
+  // Ban reason (if banned)
+  banReason: {
+    type: String,
+    default: null
+  },
+  
   // Timestamps
   createdAt: {
     type: Date,

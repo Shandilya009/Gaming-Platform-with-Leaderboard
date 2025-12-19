@@ -27,7 +27,9 @@ const formatUserResponse = (user) => ({
   id: user._id,
   username: user.username,
   email: user.email,
-  totalPoints: user.totalPoints
+  totalPoints: user.totalPoints,
+  role: user.role || 'user',
+  status: user.status || 'active'
 });
 
 /**

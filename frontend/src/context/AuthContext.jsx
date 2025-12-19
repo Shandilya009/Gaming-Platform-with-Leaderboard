@@ -194,7 +194,8 @@ export const AuthProvider = ({ children }) => {
     logout,                         // Logout function
     updateUserPoints,               // Update user points function
     refreshUser,                    // Refresh user data function
-    isAuthenticated: !!user         // Boolean: true if user is logged in
+    isAuthenticated: !!user,        // Boolean: true if user is logged in
+    isAdmin: user?.role === 'admin' // Boolean: true if user is admin
   };
 
   // Show loading screen while checking authentication status

@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import AdminRoute from './components/AdminRoute';
 import Navbar from './components/Navbar';
 
 // Import page components
@@ -13,6 +14,14 @@ import GamePlay from './pages/GamePlay';
 import Leaderboard from './pages/Leaderboard';
 import GameLeaderboard from './pages/GameLeaderboard';
 import MyScores from './pages/MyScores';
+
+// Import admin pages
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminUsers from './pages/admin/AdminUsers';
+import AdminGames from './pages/admin/AdminGames';
+import AdminScores from './pages/admin/AdminScores';
+import AdminLogs from './pages/admin/AdminLogs';
+import AdminSettings from './pages/admin/AdminSettings';
 
 import './App.css';
 
@@ -37,7 +46,7 @@ function AppContent() {
     const currentPath = location.pathname;
     
     // Pages where navbar should be hidden
-    const hideNavbarPaths = ['/dashboard', '/games', '/leaderboard', '/my-scores'];
+    const hideNavbarPaths = ['/dashboard', '/games', '/leaderboard', '/my-scores', '/admin'];
     
     // Check if current path starts with any of the hide paths
     const matchesHidePath = hideNavbarPaths.some(path => 
@@ -129,6 +138,56 @@ function AppContent() {
               <ProtectedRoute>
                 <MyScores />
               </ProtectedRoute>
+            }
+          />
+
+          {/* Admin Routes - require admin role */}
+          <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <AdminDashboard />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/users"
+            element={
+              <AdminRoute>
+                <AdminUsers />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/games"
+            element={
+              <AdminRoute>
+                <AdminGames />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/scores"
+            element={
+              <AdminRoute>
+                <AdminScores />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/logs"
+            element={
+              <AdminRoute>
+                <AdminLogs />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/settings"
+            element={
+              <AdminRoute>
+                <AdminSettings />
+              </AdminRoute>
             }
           />
           

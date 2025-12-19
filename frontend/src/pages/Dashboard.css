@@ -83,11 +83,16 @@
   gap: 16px;
   padding: 16px;
   border-radius: 12px;
-  color: var(--text-secondary);
+  color: #6C757D !important;
   text-decoration: none;
   transition: all 0.3s ease;
   font-weight: 600;
   position: relative;
+}
+
+.nav-item .nav-text {
+  color: #6C757D !important;
+  -webkit-text-fill-color: #6C757D !important;
 }
 
 .nav-item:hover {
@@ -98,8 +103,13 @@
 
 .nav-item.active {
   background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-  color: white;
+  color: white !important;
   box-shadow: 0 4px 16px rgba(255, 107, 53, 0.3);
+}
+
+.nav-item.active .nav-text {
+  color: white !important;
+  -webkit-text-fill-color: white !important;
 }
 
 .nav-item.active::before {
@@ -159,13 +169,13 @@
 
 .user-name {
   font-weight: 700;
-  color: var(--text-primary);
+  color: #2D2D2D;
   margin-bottom: 4px;
 }
 
 .user-points {
   font-size: 0.875rem;
-  color: var(--text-secondary);
+  color: #6C757D;
   font-weight: 600;
 }
 
@@ -298,7 +308,7 @@
 
 .stat-label {
   font-size: 0.95rem;
-  color: var(--text-secondary);
+  color: #6C757D;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -308,7 +318,8 @@
 .stat-value {
   font-size: 2.5rem;
   font-weight: 800;
-  color: var(--text-primary);
+  color: #2D2D2D !important;
+  -webkit-text-fill-color: #2D2D2D !important;
   line-height: 1;
   margin-bottom: 8px;
 }
@@ -912,4 +923,48 @@
   .leaderboard-preview-card {
     grid-column: span 12;
   }
+}
+
+
+/* Nav Divider */
+.nav-divider {
+  height: 2px;
+  background: rgba(255, 107, 53, 0.1);
+  margin: 12px 0;
+  border-radius: 1px;
+}
+
+/* Admin Nav Item */
+.nav-item-admin {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(239, 68, 68, 0.1));
+  border: 2px solid rgba(245, 158, 11, 0.2);
+}
+
+.nav-item-admin:hover {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(239, 68, 68, 0.18));
+  border-color: rgba(245, 158, 11, 0.4);
+  color: #f59e0b;
+}
+
+/* Header Actions */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn-logout {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-logout:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4);
 }

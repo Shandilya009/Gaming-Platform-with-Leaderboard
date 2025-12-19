@@ -105,7 +105,26 @@
   border-radius: 12px;
   font-size: 1rem;
   transition: all 0.3s ease;
-  background: white;
+  background: #FFFFFF !important;
+  color: #2D2D2D !important;
+  -webkit-text-fill-color: #2D2D2D !important;
+}
+
+.form-group input::placeholder {
+  color: #ADB5BD !important;
+  -webkit-text-fill-color: #ADB5BD !important;
+  opacity: 1;
+}
+
+.form-group input:-webkit-autofill,
+.form-group input:-webkit-autofill:hover,
+.form-group input:-webkit-autofill:focus,
+.form-group input:-webkit-autofill:active {
+  -webkit-text-fill-color: #2D2D2D !important;
+  -webkit-box-shadow: 0 0 0px 1000px #FFFFFF inset !important;
+  box-shadow: 0 0 0px 1000px #FFFFFF inset !important;
+  background-color: #FFFFFF !important;
+  color: #2D2D2D !important;
 }
 
 .form-group input:focus {
@@ -114,9 +133,7 @@
   box-shadow: 0 0 0 4px rgba(255, 107, 53, 0.1);
 }
 
-.form-group input::placeholder {
-  color: #ADB5BD;
-}
+
 
 .submit-btn {
   width: 100%;

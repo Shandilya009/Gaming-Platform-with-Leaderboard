@@ -127,5 +127,43 @@ export const scoresAPI = {
     api.get("/scores/leaderboard/global", { params: { limit } }),
 };
 
+/**
+ * Admin API endpoints
+ * Handles admin dashboard, user management, game management, score moderation
+ */
+export const adminAPI = {
+  // Dashboard stats
+  getStats: () => api.get("/admin/stats"),
+
+  // User management
+  getUsers: (params) => api.get("/admin/users", { params }),
+  getUser: (userId) => api.get(`/admin/users/${userId}`),
+  updateUser: (userId, data) => api.put(`/admin/users/${userId}`, data),
+  deleteUser: (userId) => api.delete(`/admin/users/${userId}`),
+
+  // Game management
+  getGames: () => api.get("/admin/games"),
+  createGame: (gameData) => api.post("/admin/games", gameData),
+  updateGame: (gameId, gameData) => api.put(`/admin/games/${gameId}`, gameData),
+  deleteGame: (gameId) => api.delete(`/admin/games/${gameId}`),
+
+  // Score management
+  getScores: (params) => api.get("/admin/scores", { params }),
+  deleteScore: (scoreId) => api.delete(`/admin/scores/${scoreId}`),
+
+  // Admin logs
+  getLogs: (params) => api.get("/admin/logs", { params }),
+  getLogsSummary: (days = 7) => api.get("/admin/logs/summary", { params: { days } }),
+
+  // Admin sessions
+  getSessions: (params) => api.get("/admin/sessions", { params }),
+  getActiveSessions: () => api.get("/admin/sessions/active"),
+
+  // Admin settings
+  getSettings: (category = '') => api.get("/admin/settings", { params: { category } }),
+  updateSetting: (key, value) => api.put(`/admin/settings/${key}`, { value }),
+  createSetting: (settingData) => api.post("/admin/settings", settingData),
+};
+
 // Export the configured axios instance as default
 export default api;
