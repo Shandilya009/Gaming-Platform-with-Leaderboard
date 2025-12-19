@@ -5,12 +5,8 @@ import axios from "axios";
  * Centralized API client setup for the gaming platform frontend
  */
 
-// Determine API base URL based on environment
-// Use Vite's import.meta.env for environment variables
-const API_BASE_URL = import.meta.env.VITE_API_URL || 
-  (import.meta.env.PROD 
-    ? "https://gaming-platform-backend-api.onrender.com"
-    : "http://localhost:5001");
+// API Configuration for local development
+const API_BASE_URL = "http://localhost:5001";
 
 // Create axios instance with default configuration
 const api = axios.create({
