@@ -17,11 +17,7 @@ import MyScores from './pages/MyScores';
 
 // Import admin pages
 import AdminDashboard from './pages/admin/AdminDashboard';
-import AdminUsers from './pages/admin/AdminUsers';
-import AdminGames from './pages/admin/AdminGames';
 import AdminScores from './pages/admin/AdminScores';
-import AdminLogs from './pages/admin/AdminLogs';
-import AdminSettings from './pages/admin/AdminSettings';
 
 import './App.css';
 
@@ -151,42 +147,10 @@ function AppContent() {
             }
           />
           <Route
-            path="/admin/users"
-            element={
-              <AdminRoute>
-                <AdminUsers />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/admin/games"
-            element={
-              <AdminRoute>
-                <AdminGames />
-              </AdminRoute>
-            }
-          />
-          <Route
             path="/admin/scores"
             element={
               <AdminRoute>
                 <AdminScores />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/admin/logs"
-            element={
-              <AdminRoute>
-                <AdminLogs />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/admin/settings"
-            element={
-              <AdminRoute>
-                <AdminSettings />
               </AdminRoute>
             }
           />

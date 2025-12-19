@@ -71,25 +71,9 @@ function AdminDashboard() {
             <span className="nav-icon">📊</span>
             {sidebarOpen && <span className="nav-text">Dashboard</span>}
           </Link>
-          <Link to="/admin/users" className="nav-item">
-            <span className="nav-icon">👥</span>
-            {sidebarOpen && <span className="nav-text">Users</span>}
-          </Link>
-          <Link to="/admin/games" className="nav-item">
-            <span className="nav-icon">🎮</span>
-            {sidebarOpen && <span className="nav-text">Games</span>}
-          </Link>
           <Link to="/admin/scores" className="nav-item">
             <span className="nav-icon">📈</span>
             {sidebarOpen && <span className="nav-text">Scores</span>}
-          </Link>
-          <Link to="/admin/logs" className="nav-item">
-            <span className="nav-icon">📋</span>
-            {sidebarOpen && <span className="nav-text">Activity Logs</span>}
-          </Link>
-          <Link to="/admin/settings" className="nav-item">
-            <span className="nav-icon">⚙️</span>
-            {sidebarOpen && <span className="nav-text">Settings</span>}
           </Link>
           <div className="nav-divider"></div>
           <Link to="/dashboard" className="nav-item">
@@ -204,7 +188,6 @@ function AdminDashboard() {
           <div className="admin-card">
             <div className="card-header">
               <h3>🔥 Popular Games</h3>
-              <Link to="/admin/games" className="view-all-link">Manage →</Link>
             </div>
             <div className="admin-list">
               {stats.popularGames.map((game, index) => (
@@ -224,7 +207,6 @@ function AdminDashboard() {
           <div className="admin-card">
             <div className="card-header">
               <h3>🏆 Top Players</h3>
-              <Link to="/admin/users" className="view-all-link">View All →</Link>
             </div>
             <div className="admin-list">
               {stats.topPlayers.map((player, index) => (
@@ -245,7 +227,6 @@ function AdminDashboard() {
           <div className="admin-card">
             <div className="card-header">
               <h3>👤 Recent Signups</h3>
-              <Link to="/admin/users" className="view-all-link">View All →</Link>
             </div>
             <div className="admin-list">
               {stats.recentUsers.map((user) => (
@@ -263,26 +244,6 @@ function AdminDashboard() {
             </div>
           </div>
 
-          {/* Quick Actions */}
-          <div className="admin-card">
-            <div className="card-header">
-              <h3>⚡ Quick Actions</h3>
-            </div>
-            <div className="quick-actions">
-              <Link to="/admin/games" className="action-btn action-primary">
-                <span>➕</span> Add New Game
-              </Link>
-              <Link to="/admin/users" className="action-btn action-secondary">
-                <span>👥</span> Manage Users
-              </Link>
-              <Link to="/admin/scores" className="action-btn action-warning">
-                <span>📊</span> View Scores
-              </Link>
-              <Link to="/dashboard" className="action-btn action-outline">
-                <span>🏠</span> Back to App
-              </Link>
-            </div>
-          </div>
         </div>
       </main>
     </div>
