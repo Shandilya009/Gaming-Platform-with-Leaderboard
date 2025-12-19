@@ -76,8 +76,16 @@ const SpeedMathChallenge = ({ onGameEnd }) => {
     setIsActive(false);
     setIsFinished(true);
     const finalScore = Math.max(0, Math.round(correct - (incorrect * 0.25)));
+    const total = correct + incorrect;
+    const accuracyVal = total > 0 ? Math.round((correct / total) * 100) : 0;
     if (onGameEnd) {
-      onGameEnd(finalScore);
+      onGameEnd({
+        score: finalScore,
+        speedScore: Math.min(100, correct * 5), // More correct = faster
+        accuracyScore: accuracyVal,
+        consistencyScore: Math.max(0, 100 - incorrect * 10),
+        timeTaken: 60
+      });
     }
   };
 

@@ -40,13 +40,31 @@ function GamePlay() {
     }
   };
 
-  const handleGameEnd = async (score) => {
+  const handleGameEnd = async (scoreData) => {
     if (scoreSubmitted) return;
     
     setSubmittingScore(true);
     try {
-      await scoresAPI.submit({ gameId: id, score });
-      updateUserPoints(score);
+      // Support both legacy (number) and enhanced (object) score formats
+      let submitData;
+      if (typeof scoreData === 'object') {
+        submitData = {
+          gameId: id,
+          score: scoreData.score,
+          speedScore: scoreData.speedScore || 0,
+          accuracyScore: scoreData.accuracyScore || 0,
+          consistencyScore: scoreData.consistencyScore || 70,
+          timeTaken: scoreData.timeTaken || 0,
+          difficulty: game?.difficulty || 'medium'
+        };
+      } else {
+        // Legacy format - just a number
+        submitData = { gameId: id, score: scoreData };
+      }
+      
+      const response = await scoresAPI.submit(submitData);
+      const pointsEarned = response.data?.pointsEarned || scoreData.score || scoreData;
+      updateUserPoints(pointsEarned);
       setScoreSubmitted(true);
       setTimeout(() => setScoreSubmitted(false), 2000);
     } catch (error) {

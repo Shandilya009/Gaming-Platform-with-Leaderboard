@@ -73,7 +73,14 @@ const TypingSpeedTest = ({ onGameEnd }) => {
     setIsFinished(true);
     const finalScore = calculateResults();
     if (onGameEnd) {
-      onGameEnd(finalScore);
+      // Send enhanced score data with metrics
+      onGameEnd({
+        score: finalScore,
+        speedScore: Math.min(100, wpm * 2), // WPM scaled to 0-100
+        accuracyScore: accuracy,
+        consistencyScore: 70, // Default for typing
+        timeTaken: 30 - timeLeft
+      });
     }
   };
 

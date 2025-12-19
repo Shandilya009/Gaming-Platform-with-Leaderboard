@@ -83,7 +83,13 @@ const WordUnscramble = ({ onGameEnd }) => {
     setIsActive(false);
     setIsFinished(true);
     if (onGameEnd) {
-      onGameEnd(score);
+      onGameEnd({
+        score: score,
+        speedScore: Math.min(100, score * 10), // More words = faster
+        accuracyScore: 100, // All submitted words are correct
+        consistencyScore: Math.min(100, score * 15),
+        timeTaken: 60
+      });
     }
   };
 

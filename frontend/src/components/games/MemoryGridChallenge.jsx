@@ -82,7 +82,13 @@ const MemoryGridChallenge = ({ onGameEnd }) => {
   const endGame = () => {
     setPhase('end');
     if (onGameEnd) {
-      onGameEnd(score);
+      onGameEnd({
+        score: score,
+        speedScore: 70, // Memory games are less about speed
+        accuracyScore: Math.min(100, score * 20),
+        consistencyScore: Math.min(100, score * 15),
+        timeTaken: 0
+      });
     }
   };
 

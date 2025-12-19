@@ -76,8 +76,17 @@ const ReflexBarStopper = ({ onGameEnd }) => {
     const averageScore = Math.round(
       finalAttempts.reduce((sum, score) => sum + score, 0) / finalAttempts.length
     );
+    // Calculate consistency from variance in attempts
+    const variance = finalAttempts.reduce((sum, s) => sum + Math.abs(s - averageScore), 0) / finalAttempts.length;
+    const consistencyVal = Math.max(0, 100 - variance);
     if (onGameEnd) {
-      onGameEnd(averageScore);
+      onGameEnd({
+        score: averageScore,
+        speedScore: averageScore, // Reflex = speed
+        accuracyScore: averageScore, // Accuracy = how close to center
+        consistencyScore: Math.round(consistencyVal),
+        timeTaken: 0
+      });
     }
   };
 
