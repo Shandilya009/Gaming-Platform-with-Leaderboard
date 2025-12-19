@@ -813,3 +813,25 @@
   text-decoration: none;
   cursor: pointer;
 }
+
+/* Clickable Stat Card */
+.stat-card-clickable {
+  text-decoration: none;
+  cursor: pointer;
+  position: relative;
+}
+
+.stat-card-clickable:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 16px 48px rgba(139, 92, 246, 0.25);
+  border-color: rgba(139, 92, 246, 0.5);
+}
+
+.stat-card-clickable .stat-trend {
+  transition: all 0.3s ease;
+}
+
+.stat-card-clickable:hover .stat-trend {
+  color: var(--secondary-color);
+  font-weight: 700;
+}

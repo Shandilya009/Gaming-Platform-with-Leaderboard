@@ -19,7 +19,9 @@ function Dashboard() {
     averageScore: 0,
     bestScore: 0,
     rank: "-",
+    totalPlayers: 0,
   });
+  const [topPlayers, setTopPlayers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(new Date());
@@ -32,19 +34,25 @@ function Dashboard() {
   // Load data on mount and when window gains focus (user returns from game)
   const loadDashboardData = useCallback(async () => {
     try {
-      const [scoresResponse, gamesResponse, rankResponse] = await Promise.all([
+      const [scoresResponse, gamesResponse, rankResponse, leaderboardResponse] = await Promise.all([
         scoresAPI.getUserScores(),
         gamesAPI.getAll(),
-        scoresAPI.getUserRank().catch(() => ({ data: { rank: "-" } }))
+        scoresAPI.getUserRank().catch(() => ({ data: { rank: "-" } })),
+        scoresAPI.getGlobalLeaderboard(5).catch(() => ({ data: [] }))
       ]);
 
       const userScores = scoresResponse.data?.scores || scoresResponse.data || [];
       setRecentScores(userScores.slice(0, 5));
       setGames(gamesResponse.data);
+      setTopPlayers(leaderboardResponse.data || []);
       
       // Calculate weekly chart data from actual scores
       calculateWeeklyData(userScores);
-      calculateUserStats(userScores, rankResponse.data?.rank);
+      
+      // Get total players count from leaderboard for context
+      const totalPlayersResponse = await scoresAPI.getGlobalLeaderboard(1000).catch(() => ({ data: [] }));
+      const totalPlayers = totalPlayersResponse.data?.length || 0;
+      calculateUserStats(userScores, rankResponse.data?.rank, totalPlayers);
       setLastUpdated(new Date());
       
       // Refresh user data to get updated points
@@ -92,9 +100,9 @@ function Dashboard() {
     setWeeklyData(weekData);
   };
 
-  const calculateUserStats = (userScores, rank) => {
+  const calculateUserStats = (userScores, rank, totalPlayers = 0) => {
     if (!userScores || userScores.length === 0) {
-      setStats({ gamesPlayed: 0, averageScore: 0, bestScore: 0, rank: rank || "-" });
+      setStats({ gamesPlayed: 0, averageScore: 0, bestScore: 0, rank: rank || "-", totalPlayers });
       return;
     }
 
@@ -108,6 +116,7 @@ function Dashboard() {
       averageScore,
       bestScore,
       rank: rank || "-",
+      totalPlayers,
     });
   };
 
@@ -234,14 +243,16 @@ function Dashboard() {
             </div>
           </div>
 
-          <div className="stat-card stat-card-purple">
+          <Link to="/leaderboard" className="stat-card stat-card-purple stat-card-clickable">
             <div className="stat-icon">🏆</div>
             <div className="stat-content">
               <div className="stat-label">Global Rank</div>
               <div className="stat-value">#{stats.rank}</div>
-              <div className="stat-trend positive">Keep playing!</div>
+              <div className="stat-trend positive">
+                {stats.totalPlayers > 0 ? `of ${stats.totalPlayers} players` : "View Leaderboard →"}
+              </div>
             </div>
-          </div>
+          </Link>
         </div>
 
         <div className="content-grid">

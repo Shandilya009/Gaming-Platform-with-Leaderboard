@@ -5,12 +5,14 @@ import { scoresAPI } from "../api/api";
 import "./MyScores.css";
 
 /**
- * MyScores Component - Interactive Real-Time Analytics Dashboard
+ * MyScores Component - Comprehensive Analytics Dashboard
+ * Shows: Recent 5 games, Best score, Current score, Skill metrics, Progress tracking
  */
 function MyScores() {
   const { user, logout, refreshUser } = useAuth();
   const navigate = useNavigate();
 
+  const [scores, setScores] = useState([]);
   const [analytics, setAnalytics] = useState(null);
   const [rankData, setRankData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -27,10 +29,16 @@ function MyScores() {
   const loadAnalytics = useCallback(async (showRefreshing = false) => {
     if (showRefreshing) setRefreshing(true);
     try {
-      const [analyticsRes, rankRes] = await Promise.all([
-        scoresAPI.getUserAnalytics(),
-        scoresAPI.getUserRank()
+      // Fetch both user scores and analytics
+      const [scoresRes, analyticsRes, rankRes] = await Promise.all([
+        scoresAPI.getUserScores(),
+        scoresAPI.getUserAnalytics().catch(() => ({ data: null })),
+        scoresAPI.getUserRank().catch(() => ({ data: { rank: "-", totalPoints: 0 } }))
       ]);
+      
+      // Handle different response formats
+      const userScores = scoresRes.data?.scores || scoresRes.data || [];
+      setScores(Array.isArray(userScores) ? userScores : []);
       setAnalytics(analyticsRes.data);
       setRankData(rankRes.data);
       setLastUpdated(new Date());
@@ -45,20 +53,53 @@ function MyScores() {
 
   useEffect(() => {
     loadAnalytics();
-    
-    // Auto-refresh when window gains focus
     const handleFocus = () => loadAnalytics(true);
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
   }, [loadAnalytics]);
 
-  // Filter scores by selected game
-  const filteredScores = analytics?.recentScores?.filter(score => 
-    selectedGame === 'all' || score.gameId?.name === selectedGame
-  ) || [];
+  // Calculate stats from scores
+  const calculateStats = () => {
+    if (!scores || scores.length === 0) {
+      return { totalGames: 0, bestScore: 0, avgScore: 0, currentScore: 0, totalPoints: 0 };
+    }
+    const scoreValues = scores.map(s => s.finalScore || s.score || 0);
+    const bestScore = Math.max(...scoreValues);
+    const totalPoints = scoreValues.reduce((sum, s) => sum + s, 0);
+    const avgScore = Math.round(totalPoints / scores.length);
+    const currentScore = scoreValues[0] || 0; // Most recent score
+    return { totalGames: scores.length, bestScore, avgScore, currentScore, totalPoints };
+  };
 
-  // Get unique game names for filter
-  const gameNames = [...new Set(analytics?.recentScores?.map(s => s.gameId?.name).filter(Boolean) || [])];
+  const stats = calculateStats();
+
+  // Filter scores by selected game
+  const filteredScores = scores.filter(score => 
+    selectedGame === 'all' || score.gameId?.name === selectedGame
+  );
+
+  // Get unique game names
+  const gameNames = [...new Set(scores.map(s => s.gameId?.name).filter(Boolean))];
+
+  // Get best score details
+  const bestScoreEntry = scores.reduce((best, current) => {
+    const currentVal = current.finalScore || current.score || 0;
+    const bestVal = best ? (best.finalScore || best.score || 0) : 0;
+    return currentVal > bestVal ? current : best;
+  }, null);
+
+  // Calculate improvement (compare last 3 vs previous 3)
+  const calculateImprovement = () => {
+    if (scores.length < 2) return 0;
+    const recent = scores.slice(0, Math.min(3, scores.length));
+    const older = scores.slice(3, Math.min(6, scores.length));
+    if (older.length === 0) return 0;
+    const recentAvg = recent.reduce((sum, s) => sum + (s.finalScore || s.score || 0), 0) / recent.length;
+    const olderAvg = older.reduce((sum, s) => sum + (s.finalScore || s.score || 0), 0) / older.length;
+    return Math.round(((recentAvg - olderAvg) / olderAvg) * 100);
+  };
+
+  const improvement = calculateImprovement();
 
   if (loading) {
     return (
@@ -69,7 +110,7 @@ function MyScores() {
     );
   }
 
-  const hasScores = analytics && analytics.totalGames > 0;
+  const hasScores = scores && scores.length > 0;
 
   return (
     <div className="myscores-layout">
@@ -153,213 +194,249 @@ function MyScores() {
           </div>
         ) : (
           <>
-            {/* Stats Overview */}
+            {/* Main Stats Overview */}
             <div className="stats-overview">
               <div className="stat-card stat-primary">
                 <div className="stat-icon">🎯</div>
                 <div className="stat-content">
                   <div className="stat-label">Games Played</div>
-                  <div className="stat-value">{analytics.totalGames}</div>
+                  <div className="stat-value">{stats.totalGames}</div>
                 </div>
               </div>
               <div className="stat-card stat-success">
-                <div className="stat-icon">⭐</div>
+                <div className="stat-icon">🏆</div>
                 <div className="stat-content">
                   <div className="stat-label">Best Score</div>
-                  <div className="stat-value">{analytics.bestScore?.score || 0}</div>
+                  <div className="stat-value">{stats.bestScore}</div>
                 </div>
               </div>
               <div className="stat-card stat-warning">
-                <div className="stat-icon">📊</div>
+                <div className="stat-icon">⚡</div>
                 <div className="stat-content">
-                  <div className="stat-label">Average Score</div>
-                  <div className="stat-value">{analytics.averageScore}</div>
+                  <div className="stat-label">Current Score</div>
+                  <div className="stat-value">{stats.currentScore}</div>
                 </div>
               </div>
               <div className="stat-card stat-purple">
-                <div className="stat-icon">🏆</div>
+                <div className="stat-icon">📊</div>
                 <div className="stat-content">
-                  <div className="stat-label">Global Rank</div>
-                  <div className="stat-value">#{rankData?.rank || "-"}</div>
+                  <div className="stat-label">Average</div>
+                  <div className="stat-value">{stats.avgScore}</div>
                 </div>
               </div>
             </div>
 
-            {/* Score Breakdown & Skill Impact */}
-            <div className="analytics-grid">
-              <div className="analytics-card breakdown-card">
-                <h3>📊 Score Breakdown</h3>
-                <p className="card-subtitle">How your final score is calculated</p>
-                
-                <div className="breakdown-item">
-                  <div className="breakdown-header">
-                    <span className="breakdown-label">⚡ Speed (40%)</span>
-                    <span className="breakdown-value">{analytics.stats?.avgSpeed || 0}</span>
+            {/* Score Comparison Card */}
+            <div className="comparison-section">
+              <div className="comparison-card">
+                <h3>📊 Score Comparison</h3>
+                <div className="comparison-grid">
+                  <div className="comparison-item best">
+                    <div className="comparison-label">🏆 Best Score</div>
+                    <div className="comparison-value">{stats.bestScore}</div>
+                    <div className="comparison-game">{bestScoreEntry?.gameId?.name || 'N/A'}</div>
                   </div>
-                  <div className="progress-bar">
-                    <div 
-                      className="progress-fill speed" 
-                      style={{ width: `${analytics.stats?.avgSpeed || 0}%`, transition: 'width 0.5s ease' }}
-                    ></div>
+                  <div className="comparison-item current">
+                    <div className="comparison-label">⚡ Latest Score</div>
+                    <div className="comparison-value">{stats.currentScore}</div>
+                    <div className="comparison-game">{scores[0]?.gameId?.name || 'N/A'}</div>
                   </div>
-                </div>
-
-                <div className="breakdown-item">
-                  <div className="breakdown-header">
-                    <span className="breakdown-label">🎯 Accuracy (40%)</span>
-                    <span className="breakdown-value">{analytics.stats?.avgAccuracy || 0}</span>
+                  <div className="comparison-item average">
+                    <div className="comparison-label">📈 Average</div>
+                    <div className="comparison-value">{stats.avgScore}</div>
+                    <div className="comparison-game">All Games</div>
                   </div>
-                  <div className="progress-bar">
-                    <div 
-                      className="progress-fill accuracy" 
-                      style={{ width: `${analytics.stats?.avgAccuracy || 0}%`, transition: 'width 0.5s ease' }}
-                    ></div>
-                  </div>
-                </div>
-
-                <div className="breakdown-item">
-                  <div className="breakdown-header">
-                    <span className="breakdown-label">🔄 Consistency (20%)</span>
-                    <span className="breakdown-value">{analytics.stats?.avgConsistency || 0}</span>
-                  </div>
-                  <div className="progress-bar">
-                    <div 
-                      className="progress-fill consistency" 
-                      style={{ width: `${analytics.stats?.avgConsistency || 0}%`, transition: 'width 0.5s ease' }}
-                    ></div>
-                  </div>
-                </div>
-
-                <div className="formula-box">
-                  <span className="formula-label">Formula:</span>
-                  <code>(Speed × 0.4) + (Accuracy × 0.4) + (Consistency × 0.2)</code>
-                </div>
-              </div>
-
-              <div className="analytics-card skill-card">
-                <h3>🧠 Skill Impact</h3>
-                <p className="card-subtitle">Your cognitive performance metrics</p>
-                
-                <div className="skill-grid">
-                  <div className="skill-item">
-                    <div className="skill-circle focus">
-                      <span className="skill-value">{analytics.skillImpact?.focus || 0}</span>
-                    </div>
-                    <span className="skill-label">Focus</span>
-                  </div>
-                  <div className="skill-item">
-                    <div className="skill-circle reflex">
-                      <span className="skill-value">{analytics.skillImpact?.reflex || 0}</span>
-                    </div>
-                    <span className="skill-label">Reflex</span>
-                  </div>
-                  <div className="skill-item">
-                    <div className="skill-circle accuracy">
-                      <span className="skill-value">{analytics.skillImpact?.accuracy || 0}</span>
-                    </div>
-                    <span className="skill-label">Accuracy</span>
-                  </div>
-                  <div className="skill-item">
-                    <div className="skill-circle consistency">
-                      <span className="skill-value">{analytics.skillImpact?.consistency || 0}</span>
-                    </div>
-                    <span className="skill-label">Consistency</span>
+                  <div className={`comparison-item improvement ${improvement >= 0 ? 'positive' : 'negative'}`}>
+                    <div className="comparison-label">📈 Improvement</div>
+                    <div className="comparison-value">{improvement >= 0 ? '+' : ''}{improvement}%</div>
+                    <div className="comparison-game">vs Previous</div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* Rank & Recent Scores */}
-            <div className="analytics-grid">
-              <div className="analytics-card rank-card">
-                <h3>🏅 Leaderboard Impact</h3>
-                <div className="rank-display">
-                  <div className="current-rank">
-                    <span className="rank-number">#{rankData?.rank || "-"}</span>
-                    <span className="rank-label">Current Rank</span>
-                  </div>
-                  <div className="rank-progress">
-                    <div className="points-info">
-                      <span className="total-points">{rankData?.totalPoints || 0} pts</span>
-                      {rankData?.pointsToNextRank > 0 && (
-                        <span className="next-rank-info">
-                          {rankData.pointsToNextRank} pts to next rank
-                        </span>
-                      )}
-                    </div>
+              {/* Rank Card */}
+              <div className="rank-card-small">
+                <h3>🏅 Global Rank</h3>
+                <div className="rank-display-small">
+                  <div className="rank-number-large">#{rankData?.rank || "-"}</div>
+                  <div className="rank-details">
+                    <span className="total-pts">{user.totalPoints} total pts</span>
                     {rankData?.pointsToNextRank > 0 && (
-                      <div className="progress-bar rank-progress-bar">
-                        <div 
-                          className="progress-fill rank" 
-                          style={{ 
-                            width: `${Math.min(100, (rankData.totalPoints / rankData.nextRankPoints) * 100)}%`,
-                            transition: 'width 0.5s ease'
-                          }}
-                        ></div>
-                      </div>
+                      <span className="next-rank">{rankData.pointsToNextRank} pts to next rank</span>
                     )}
                   </div>
                 </div>
               </div>
+            </div>
 
-              <div className="analytics-card recent-card">
-                <div className="card-header-with-filter">
-                  <h3>🕐 Recent Scores</h3>
-                  <select 
-                    className="game-filter"
-                    value={selectedGame}
-                    onChange={(e) => setSelectedGame(e.target.value)}
-                  >
-                    <option value="all">All Games</option>
-                    {gameNames.map(name => (
-                      <option key={name} value={name}>{name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="recent-list">
-                  {filteredScores.slice(0, 5).map((score, index) => (
-                    <div key={score._id} className="recent-item">
-                      <div className="recent-rank">{index + 1}</div>
-                      <div className="recent-info">
-                        <span className="recent-game">{score.gameId?.name || "Game"}</span>
-                        <span className="recent-date">
-                          {new Date(score.createdAt).toLocaleDateString()} {new Date(score.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                        </span>
-                      </div>
-                      <div className="recent-score">{score.finalScore || score.score} pts</div>
-                    </div>
+            {/* Recent 5 Games */}
+            <div className="recent-games-section">
+              <div className="section-header">
+                <h3>🕐 Recent 5 Games</h3>
+                <select 
+                  className="game-filter"
+                  value={selectedGame}
+                  onChange={(e) => setSelectedGame(e.target.value)}
+                >
+                  <option value="all">All Games</option>
+                  {gameNames.map(name => (
+                    <option key={name} value={name}>{name}</option>
                   ))}
-                  {filteredScores.length === 0 && (
-                    <div className="empty-filter">No scores for this game yet</div>
-                  )}
-                </div>
+                </select>
+              </div>
+              <div className="recent-games-list">
+                {filteredScores.slice(0, 5).map((score, index) => {
+                  const scoreVal = score.finalScore || score.score || 0;
+                  const isBest = scoreVal === stats.bestScore;
+                  return (
+                    <div key={score._id} className={`recent-game-item ${isBest ? 'is-best' : ''}`}>
+                      <div className="game-rank">{index + 1}</div>
+                      <div className="game-icon">
+                        {score.gameId?.type === 'speed' ? '⚡' : 
+                         score.gameId?.type === 'logic' ? '🧠' :
+                         score.gameId?.type === 'puzzle' ? '🧩' :
+                         score.gameId?.type === 'reflex' ? '🎯' :
+                         score.gameId?.type === 'memory' ? '💭' : '🎮'}
+                      </div>
+                      <div className="game-details">
+                        <div className="game-name">{score.gameId?.name || "Game"}</div>
+                        <div className="game-date">
+                          {new Date(score.createdAt).toLocaleDateString()} at {new Date(score.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                        </div>
+                      </div>
+                      <div className="game-score-section">
+                        <div className="game-score">{scoreVal} pts</div>
+                        {isBest && <span className="best-badge">🏆 Best</span>}
+                      </div>
+                    </div>
+                  );
+                })}
+                {filteredScores.length === 0 && (
+                  <div className="empty-filter">No scores for this game yet</div>
+                )}
               </div>
             </div>
 
-            {/* Game Breakdown */}
-            {analytics.gameBreakdown?.length > 0 && (
-              <div className="analytics-card game-breakdown-card">
-                <h3>🎮 Performance by Game</h3>
-                <div className="game-breakdown-grid">
-                  {analytics.gameBreakdown.map((game) => (
-                    <div key={game.name} className="game-breakdown-item">
-                      <div className="game-name">{game.name}</div>
-                      <div className="game-stats">
-                        <span className="game-plays">{game.plays} plays</span>
-                        <span className="game-best">Best: {game.bestScore}</span>
-                        <span className="game-avg">Avg: {Math.round(game.totalScore / game.plays)}</span>
+            {/* Performance by Game */}
+            <div className="performance-section">
+              <h3>🎮 Performance by Game</h3>
+              <div className="performance-grid">
+                {gameNames.map(gameName => {
+                  const gameScores = scores.filter(s => s.gameId?.name === gameName);
+                  const gameBest = Math.max(...gameScores.map(s => s.finalScore || s.score || 0));
+                  const gameAvg = Math.round(gameScores.reduce((sum, s) => sum + (s.finalScore || s.score || 0), 0) / gameScores.length);
+                  const gameType = gameScores[0]?.gameId?.type;
+                  return (
+                    <div key={gameName} className="performance-item">
+                      <div className="perf-header">
+                        <span className="perf-icon">
+                          {gameType === 'speed' ? '⚡' : 
+                           gameType === 'logic' ? '🧠' :
+                           gameType === 'puzzle' ? '🧩' :
+                           gameType === 'reflex' ? '🎯' :
+                           gameType === 'memory' ? '💭' : '🎮'}
+                        </span>
+                        <span className="perf-name">{gameName}</span>
                       </div>
-                      <div className="game-progress-bar">
+                      <div className="perf-stats">
+                        <div className="perf-stat">
+                          <span className="perf-label">Plays</span>
+                          <span className="perf-value">{gameScores.length}</span>
+                        </div>
+                        <div className="perf-stat">
+                          <span className="perf-label">Best</span>
+                          <span className="perf-value best">{gameBest}</span>
+                        </div>
+                        <div className="perf-stat">
+                          <span className="perf-label">Avg</span>
+                          <span className="perf-value">{gameAvg}</span>
+                        </div>
+                      </div>
+                      <div className="perf-bar">
                         <div 
-                          className="game-progress-fill"
-                          style={{ 
-                            width: `${Math.min(100, (game.bestScore / (analytics.bestScore?.score || 100)) * 100)}%`,
-                            transition: 'width 0.5s ease'
-                          }}
+                          className="perf-bar-fill"
+                          style={{ width: `${Math.min(100, (gameBest / stats.bestScore) * 100)}%` }}
                         ></div>
                       </div>
                     </div>
-                  ))}
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Score Breakdown (if analytics available) */}
+            {analytics?.stats && (
+              <div className="analytics-grid">
+                <div className="analytics-card breakdown-card">
+                  <h3>📊 Score Breakdown</h3>
+                  <p className="card-subtitle">How your final score is calculated</p>
+                  
+                  <div className="breakdown-item">
+                    <div className="breakdown-header">
+                      <span className="breakdown-label">⚡ Speed (40%)</span>
+                      <span className="breakdown-value">{analytics.stats?.avgSpeed || 0}</span>
+                    </div>
+                    <div className="progress-bar">
+                      <div className="progress-fill speed" style={{ width: `${analytics.stats?.avgSpeed || 0}%` }}></div>
+                    </div>
+                  </div>
+
+                  <div className="breakdown-item">
+                    <div className="breakdown-header">
+                      <span className="breakdown-label">🎯 Accuracy (40%)</span>
+                      <span className="breakdown-value">{analytics.stats?.avgAccuracy || 0}</span>
+                    </div>
+                    <div className="progress-bar">
+                      <div className="progress-fill accuracy" style={{ width: `${analytics.stats?.avgAccuracy || 0}%` }}></div>
+                    </div>
+                  </div>
+
+                  <div className="breakdown-item">
+                    <div className="breakdown-header">
+                      <span className="breakdown-label">🔄 Consistency (20%)</span>
+                      <span className="breakdown-value">{analytics.stats?.avgConsistency || 0}</span>
+                    </div>
+                    <div className="progress-bar">
+                      <div className="progress-fill consistency" style={{ width: `${analytics.stats?.avgConsistency || 0}%` }}></div>
+                    </div>
+                  </div>
+
+                  <div className="formula-box">
+                    <span className="formula-label">Formula:</span>
+                    <code>(Speed × 0.4) + (Accuracy × 0.4) + (Consistency × 0.2)</code>
+                  </div>
+                </div>
+
+                <div className="analytics-card skill-card">
+                  <h3>🧠 Skill Impact</h3>
+                  <p className="card-subtitle">Your cognitive performance metrics</p>
+                  
+                  <div className="skill-grid">
+                    <div className="skill-item">
+                      <div className="skill-circle focus">
+                        <span className="skill-value">{analytics.skillImpact?.focus || 0}</span>
+                      </div>
+                      <span className="skill-label">Focus</span>
+                    </div>
+                    <div className="skill-item">
+                      <div className="skill-circle reflex">
+                        <span className="skill-value">{analytics.skillImpact?.reflex || 0}</span>
+                      </div>
+                      <span className="skill-label">Reflex</span>
+                    </div>
+                    <div className="skill-item">
+                      <div className="skill-circle accuracy">
+                        <span className="skill-value">{analytics.skillImpact?.accuracy || 0}</span>
+                      </div>
+                      <span className="skill-label">Accuracy</span>
+                    </div>
+                    <div className="skill-item">
+                      <div className="skill-circle consistency">
+                        <span className="skill-value">{analytics.skillImpact?.consistency || 0}</span>
+                      </div>
+                      <span className="skill-label">Consistency</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
