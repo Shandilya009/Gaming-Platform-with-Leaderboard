@@ -116,6 +116,12 @@ export const scoresAPI = {
   // Get current user's score history
   getUserScores: () => api.get("/scores/user"),
 
+  // Get detailed analytics for the user
+  getUserAnalytics: () => api.get("/scores/user/analytics"),
+
+  // Get user's current global rank
+  getUserRank: () => api.get("/scores/user/rank"),
+
   // Get leaderboard for specific game
   getGameLeaderboard: (gameId, limit = 100) =>
     api.get(`/scores/game/${gameId}`, { params: { limit } }),

@@ -12,6 +12,7 @@ import Games from './pages/Games';
 import GamePlay from './pages/GamePlay';
 import Leaderboard from './pages/Leaderboard';
 import GameLeaderboard from './pages/GameLeaderboard';
+import MyScores from './pages/MyScores';
 
 import './App.css';
 
@@ -36,7 +37,7 @@ function AppContent() {
     const currentPath = location.pathname;
     
     // Pages where navbar should be hidden
-    const hideNavbarPaths = ['/dashboard', '/games', '/leaderboard'];
+    const hideNavbarPaths = ['/dashboard', '/games', '/leaderboard', '/my-scores'];
     
     // Check if current path starts with any of the hide paths
     const matchesHidePath = hideNavbarPaths.some(path => 
@@ -117,6 +118,16 @@ function AppContent() {
             element={
               <ProtectedRoute>
                 <GameLeaderboard />
+              </ProtectedRoute>
+            }
+          />
+          
+          {/* My Scores - Analytics Dashboard */}
+          <Route
+            path="/my-scores"
+            element={
+              <ProtectedRoute>
+                <MyScores />
               </ProtectedRoute>
             }
           />
