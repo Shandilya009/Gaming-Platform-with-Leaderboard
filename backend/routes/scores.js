@@ -13,18 +13,64 @@ import {
 const router = express.Router();
 
 /**
- * Helper function to validate and parse limit parameter
+ * Helper: Parse and validate limit parameter
  */
 const parseLimit = (limitParam, defaultLimit = 100, maxLimit = 1000) => {
   const limit = parseInt(limitParam) || defaultLimit;
-  return Math.min(limit, maxLimit);
+  return Math.min(Math.max(1, limit), maxLimit);
 };
 
 /**
- * POST /scores
- * Submit a new score for a game (requires authentication)
- * Supports both legacy (simple score) and enhanced (metrics) submission
+ * Helper: Calculate user statistics from scores
  */
+function calculateUserStats(scores) {
+  if (!scores || scores.length === 0) {
+    return {
+      gamesPlayed: 0,
+      averageScore: 0,
+      bestScore: 0,
+      totalPoints: 0,
+      avgSpeed: 0,
+      avgAccuracy: 0,
+      avgConsistency: 0
+    };
+  }
+
+  const totalPoints = scores.reduce((sum, s) => sum + (s.finalScore || s.score || 0), 0);
+  const bestScore = Math.max(...scores.map(s => s.finalScore || s.score || 0));
+  
+  const avgSpeed = Math.round(scores.reduce((sum, s) => sum + (s.speedScore || 0), 0) / scores.length);
+  const avgAccuracy = Math.round(scores.reduce((sum, s) => sum + (s.accuracyScore || 0), 0) / scores.length);
+  const avgConsistency = Math.round(scores.reduce((sum, s) => sum + (s.consistencyScore || 0), 0) / scores.length);
+
+  return {
+    gamesPlayed: scores.length,
+    averageScore: Math.round(totalPoints / scores.length),
+    bestScore,
+    totalPoints,
+    avgSpeed,
+    avgAccuracy,
+    avgConsistency
+  };
+}
+
+/**
+ * Helper: Get user's global rank
+ */
+async function getUserGlobalRank(userId) {
+  const user = await User.findById(userId);
+  if (!user) return null;
+  
+  const rank = await User.countDocuments({ 
+    totalPoints: { $gt: user.totalPoints } 
+  });
+  
+  return rank + 1;
+}
+
+// ============================================
+// POST /scores - Submit a new score
+// ============================================
 router.post('/', authMiddleware, async (req, res) => {
   try {
     const { 
@@ -50,9 +96,9 @@ router.post('/', authMiddleware, async (req, res) => {
     if (speedScore !== undefined || accuracyScore !== undefined) {
       // Enhanced submission with metrics
       const metrics = {
-        speedScore: speedScore || 0,
-        accuracyScore: accuracyScore || 0,
-        consistencyScore: consistencyScore || 0
+        speedScore: Math.min(100, Math.max(0, speedScore || 0)),
+        accuracyScore: Math.min(100, Math.max(0, accuracyScore || 0)),
+        consistencyScore: Math.min(100, Math.max(0, consistencyScore || 0))
       };
       
       const calculatedFinalScore = calculateFinalScore(metrics, difficulty || game.difficulty);
@@ -64,7 +110,7 @@ router.post('/', authMiddleware, async (req, res) => {
         accuracyScore: metrics.accuracyScore,
         consistencyScore: metrics.consistencyScore,
         finalScore: calculatedFinalScore,
-        score: calculatedFinalScore, // For backward compatibility
+        score: score || calculatedFinalScore,
         timeTaken: timeTaken || 0,
         difficulty: difficulty || game.difficulty
       };
@@ -123,15 +169,14 @@ router.post('/', authMiddleware, async (req, res) => {
   }
 });
 
-/**
- * GET /scores/user
- * Get all scores for the authenticated user with detailed analytics
- */
+// ============================================
+// GET /scores/user - Get user's score history
+// ============================================
 router.get('/user', authMiddleware, async (req, res) => {
   try {
     const userId = req.userId;
     
-    // Get all scores with game details
+    // Get all scores with game details, sorted by newest first
     const scores = await Score.find({ userId })
       .sort({ createdAt: -1 })
       .populate('gameId', 'name difficulty type');
@@ -157,10 +202,9 @@ router.get('/user', authMiddleware, async (req, res) => {
   }
 });
 
-/**
- * GET /scores/user/analytics
- * Get detailed analytics for the authenticated user
- */
+// ============================================
+// GET /scores/user/analytics - Detailed analytics
+// ============================================
 router.get('/user/analytics', authMiddleware, async (req, res) => {
   try {
     const userId = req.userId;
@@ -178,7 +222,9 @@ router.get('/user/analytics', authMiddleware, async (req, res) => {
         recentScores: [],
         skillImpact: { focus: 0, reflex: 0, accuracy: 0, consistency: 0 },
         progressData: [],
-        gameBreakdown: []
+        gameBreakdown: [],
+        globalRank: null,
+        stats: calculateUserStats([])
       });
     }
 
@@ -187,14 +233,23 @@ router.get('/user/analytics', authMiddleware, async (req, res) => {
     const skillImpact = calculateSkillImpact(scores);
     
     // Get best score with details
-    const bestScore = scores.reduce((best, current) => 
-      (current.finalScore > (best?.finalScore || 0)) ? current : best
-    , null);
+    const bestScoreEntry = scores.reduce((best, current) => {
+      const currentVal = current.finalScore || current.score || 0;
+      const bestVal = best ? (best.finalScore || best.score || 0) : 0;
+      return currentVal > bestVal ? current : best;
+    }, null);
+
+    const bestScore = bestScoreEntry ? {
+      score: bestScoreEntry.finalScore || bestScoreEntry.score,
+      game: bestScoreEntry.gameId?.name,
+      date: bestScoreEntry.createdAt,
+      breakdown: getScoreBreakdown(bestScoreEntry)
+    } : null;
 
     // Get progress data (last 10 scores)
     const progressData = scores.slice(0, 10).reverse().map(s => ({
       date: s.createdAt,
-      score: s.finalScore,
+      score: s.finalScore || s.score,
       game: s.gameId?.name
     }));
 
@@ -212,8 +267,11 @@ router.get('/user/analytics', authMiddleware, async (req, res) => {
         };
       }
       gameBreakdown[gameName].plays++;
-      gameBreakdown[gameName].totalScore += s.finalScore;
-      gameBreakdown[gameName].bestScore = Math.max(gameBreakdown[gameName].bestScore, s.finalScore);
+      gameBreakdown[gameName].totalScore += (s.finalScore || s.score || 0);
+      gameBreakdown[gameName].bestScore = Math.max(
+        gameBreakdown[gameName].bestScore, 
+        s.finalScore || s.score || 0
+      );
     });
 
     // Get user's global rank
@@ -221,12 +279,7 @@ router.get('/user/analytics', authMiddleware, async (req, res) => {
 
     res.json({
       totalGames: scores.length,
-      bestScore: bestScore ? {
-        score: bestScore.finalScore,
-        game: bestScore.gameId?.name,
-        date: bestScore.createdAt,
-        breakdown: getScoreBreakdown(bestScore)
-      } : null,
+      bestScore,
       averageScore: stats.averageScore,
       recentScores: scores.slice(0, 5),
       skillImpact,
@@ -245,67 +298,21 @@ router.get('/user/analytics', authMiddleware, async (req, res) => {
   }
 });
 
-/**
- * GET /scores/leaderboard/global
- * Get global leaderboard showing top users by total points
- */
-router.get('/leaderboard/global', async (req, res) => {
-  try {
-    const limit = parseLimit(req.query.limit);
-    
-    const leaderboard = await User.find()
-      .sort({ totalPoints: -1 })
-      .limit(limit)
-      .select('username totalPoints createdAt');
-
-    res.json(leaderboard);
-    
-  } catch (error) {
-    console.error('Error fetching global leaderboard:', error);
-    res.status(500).json({ 
-      message: 'Server error while fetching global leaderboard', 
-      error: error.message 
-    });
-  }
-});
-
-/**
- * GET /scores/game/:gameId
- * Get leaderboard for a specific game
- */
-router.get('/game/:gameId', async (req, res) => {
-  try {
-    const gameId = req.params.gameId;
-    const limit = parseLimit(req.query.limit);
-    
-    const leaderboard = await Score.find({ gameId })
-      .sort({ finalScore: -1 })
-      .limit(limit)
-      .populate('userId', 'username')
-      .populate('gameId', 'name');
-
-    res.json(leaderboard);
-    
-  } catch (error) {
-    console.error('Error fetching game leaderboard:', error);
-    res.status(500).json({ 
-      message: 'Server error while fetching game leaderboard', 
-      error: error.message 
-    });
-  }
-});
-
-/**
- * GET /scores/user/rank
- * Get user's current global rank
- */
+// ============================================
+// GET /scores/user/rank - Get user's global rank
+// ============================================
 router.get('/user/rank', authMiddleware, async (req, res) => {
   try {
     const userId = req.userId;
     const rank = await getUserGlobalRank(userId);
     
-    // Get points needed for next rank
+    // Get user's total points
     const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    // Get points needed for next rank
     const nextRankUser = await User.findOne({ 
       totalPoints: { $gt: user.totalPoints } 
     }).sort({ totalPoints: 1 });
@@ -330,48 +337,58 @@ router.get('/user/rank', authMiddleware, async (req, res) => {
   }
 });
 
-/**
- * Helper: Calculate user statistics from scores
- */
-function calculateUserStats(scores) {
-  if (scores.length === 0) {
-    return {
-      gamesPlayed: 0,
-      averageScore: 0,
-      bestScore: 0,
-      totalPoints: 0,
-      avgSpeed: 0,
-      avgAccuracy: 0,
-      avgConsistency: 0
-    };
+// ============================================
+// GET /scores/game/:gameId - Game leaderboard
+// ============================================
+router.get('/game/:gameId', async (req, res) => {
+  try {
+    const gameId = req.params.gameId;
+    const limit = parseLimit(req.query.limit);
+    
+    // Verify game exists
+    const game = await Game.findById(gameId);
+    if (!game) {
+      return res.status(404).json({ message: 'Game not found' });
+    }
+    
+    const leaderboard = await Score.find({ gameId })
+      .sort({ finalScore: -1, createdAt: 1 })
+      .limit(limit)
+      .populate('userId', 'username')
+      .populate('gameId', 'name');
+
+    res.json(leaderboard);
+    
+  } catch (error) {
+    console.error('Error fetching game leaderboard:', error);
+    res.status(500).json({ 
+      message: 'Server error while fetching game leaderboard', 
+      error: error.message 
+    });
   }
+});
 
-  const totalPoints = scores.reduce((sum, s) => sum + (s.finalScore || s.score || 0), 0);
-  const bestScore = Math.max(...scores.map(s => s.finalScore || s.score || 0));
-  
-  return {
-    gamesPlayed: scores.length,
-    averageScore: Math.round(totalPoints / scores.length),
-    bestScore,
-    totalPoints,
-    avgSpeed: Math.round(scores.reduce((sum, s) => sum + (s.speedScore || 0), 0) / scores.length),
-    avgAccuracy: Math.round(scores.reduce((sum, s) => sum + (s.accuracyScore || 0), 0) / scores.length),
-    avgConsistency: Math.round(scores.reduce((sum, s) => sum + (s.consistencyScore || 0), 0) / scores.length)
-  };
-}
+// ============================================
+// GET /scores/leaderboard/global - Global leaderboard
+// ============================================
+router.get('/leaderboard/global', async (req, res) => {
+  try {
+    const limit = parseLimit(req.query.limit);
+    
+    const leaderboard = await User.find()
+      .sort({ totalPoints: -1 })
+      .limit(limit)
+      .select('username totalPoints createdAt');
 
-/**
- * Helper: Get user's global rank
- */
-async function getUserGlobalRank(userId) {
-  const user = await User.findById(userId);
-  if (!user) return null;
-  
-  const rank = await User.countDocuments({ 
-    totalPoints: { $gt: user.totalPoints } 
-  });
-  
-  return rank + 1;
-}
+    res.json(leaderboard);
+    
+  } catch (error) {
+    console.error('Error fetching global leaderboard:', error);
+    res.status(500).json({ 
+      message: 'Server error while fetching global leaderboard', 
+      error: error.message 
+    });
+  }
+});
 
 export default router;

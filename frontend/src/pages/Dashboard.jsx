@@ -351,6 +351,36 @@ function Dashboard() {
             </div>
           </div>
 
+          <div className="leaderboard-preview-card">
+            <div className="card-header">
+              <h3>🏆 Top Players</h3>
+              <Link to="/leaderboard" className="view-all-link">View All →</Link>
+            </div>
+            <div className="leaderboard-preview-list">
+              {topPlayers.length > 0 ? (
+                topPlayers.map((player, index) => (
+                  <div 
+                    key={player._id} 
+                    className={`leaderboard-preview-item ${player.username === user?.username ? 'current-user' : ''}`}
+                  >
+                    <div className="leaderboard-rank">
+                      {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`}
+                    </div>
+                    <div className="leaderboard-player">
+                      <span className="player-name">{player.username}</span>
+                      {player.username === user?.username && <span className="you-tag">YOU</span>}
+                    </div>
+                    <div className="leaderboard-points">{player.totalPoints.toLocaleString()} pts</div>
+                  </div>
+                ))
+              ) : (
+                <div className="empty-state">
+                  <p>No players yet. Be the first!</p>
+                </div>
+              )}
+            </div>
+          </div>
+
           <div className="quick-actions-card">
             <div className="card-header">
               <h3>Quick Actions</h3>

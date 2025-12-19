@@ -9,46 +9,59 @@ import authRoutes from "./routes/auth.js";
 import gameRoutes from "./routes/games.js";
 import scoreRoutes from "./routes/scores.js";
 
-// Load environment variables from .env file
+// Load environment variables
 dotenv.config();
 
 // Initialize Express application
 const app = express();
 
-// Configure CORS (Cross-Origin Resource Sharing) to allow frontend connections
-app.use(
-  cors({
-    origin: [
-      "http://localhost:5173", // Vite dev server default port
-      "http://localhost:5174", // Alternative Vite port
-      "https://gamezone-hackhawks.vercel.app", // Production frontend URL
-    ],
-    methods: ["GET", "POST", "PUT", "DELETE"], // Allowed HTTP methods
-    allowedHeaders: ["Content-Type", "Authorization"], // Allowed request headers
-    credentials: true, // Allow cookies and credentials
-  })
-);
+// Configure CORS
+const corsOptions = {
+  origin: [
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "http://localhost:3000",
+    process.env.FRONTEND_URL,
+    "https://gamezone-hackhawks.vercel.app",
+    "https://gaming-platform-with-leaderboard.vercel.app"
+  ].filter(Boolean),
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true
+};
+
+app.use(cors(corsOptions));
 
 // Parse JSON request bodies
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+
+// Request logging middleware (development)
+if (process.env.NODE_ENV !== 'production') {
+  app.use((req, res, next) => {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+    next();
+  });
+}
 
 // Database Connection
-// Connect to MongoDB using connection string from environment variables
 console.log("🔍 Connecting to MongoDB...");
-console.log("URI:", process.env.MONGODB_URI ? "✅ Found" : "❌ Missing");
 
 mongoose
-  .connect(process.env.MONGODB_URI)
+  .connect(process.env.MONGODB_URI, {
+    maxPoolSize: 10,
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000,
+  })
   .then(() => {
     console.log("✅ Successfully connected to MongoDB");
-    console.log("📊 Connection details:");
-    console.log("  Host:", mongoose.connection.host);
-    console.log("  Database:", mongoose.connection.name);
-    console.log("  Port:", mongoose.connection.port);
+    console.log("📊 Database:", mongoose.connection.name);
   })
-  .catch((err) => console.error("❌ MongoDB connection error:", err));
+  .catch((err) => {
+    console.error("❌ MongoDB connection error:", err.message);
+    process.exit(1);
+  });
 
-// Add connection event listeners
+// Connection event listeners
 mongoose.connection.on('connected', () => {
   console.log('🔗 Mongoose connected to MongoDB');
 });
@@ -61,30 +74,67 @@ mongoose.connection.on('disconnected', () => {
   console.log('🔌 Mongoose disconnected from MongoDB');
 });
 
-// API Routes Setup
+// Graceful shutdown
+process.on('SIGINT', async () => {
+  await mongoose.connection.close();
+  console.log('MongoDB connection closed due to app termination');
+  process.exit(0);
+});
+
+// ============================================
+// API Routes
+// ============================================
+
+// Health Check Endpoint
+app.get("/", (req, res) => {
+  res.json({
+    message: "Mini Games Platform API is running",
+    status: "healthy",
+    version: "1.0.0",
+    timestamp: new Date().toISOString()
+  });
+});
+
+app.get("/health", (req, res) => {
+  const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+  res.json({
+    status: "healthy",
+    database: dbStatus,
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Authentication routes: /auth/register, /auth/login
 app.use("/auth", authRoutes);
 
-// Game management routes: /games (CRUD operations)
+// Game management routes: /games
 app.use("/games", gameRoutes);
 
 // Score and leaderboard routes: /scores
 app.use("/scores", scoreRoutes);
 
-// Health Check Endpoint
-// Simple endpoint to verify API is running
-app.get("/", (req, res) => {
-  res.json({
-    message: "Mini Games Platform API is running",
-    status: "healthy",
-    timestamp: new Date().toISOString(),
+// 404 Handler
+app.use((req, res) => {
+  res.status(404).json({
+    message: "Endpoint not found",
+    path: req.path
+  });
+});
+
+// Global Error Handler
+app.use((err, req, res, next) => {
+  console.error('Server Error:', err);
+  res.status(500).json({
+    message: "Internal server error",
+    error: process.env.NODE_ENV === 'production' ? undefined : err.message
   });
 });
 
 // Start Server
-// Default to port 5001 to avoid conflicts with macOS system services
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
   console.log(`🚀 Server is running on port ${PORT}`);
   console.log(`📍 API available at: http://localhost:${PORT}`);
+  console.log(`🔧 Environment: ${process.env.NODE_ENV || 'development'}`);
 });

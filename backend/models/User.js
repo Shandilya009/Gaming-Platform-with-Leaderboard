@@ -9,61 +9,67 @@ const userSchema = new mongoose.Schema({
   // User's unique display name (minimum 3 characters)
   username: {
     type: String,
-    required: true,
+    required: [true, 'Username is required'],
     unique: true,
     trim: true,
-    minlength: 3
+    minlength: [3, 'Username must be at least 3 characters'],
+    index: true
   },
   
-  // User's email address (used for login, automatically converted to lowercase)
+  // User's email address (used for login)
   email: {
     type: String,
-    required: true,
+    required: [true, 'Email is required'],
     unique: true,
     trim: true,
-    lowercase: true
+    lowercase: true,
+    match: [/^\S+@\S+\.\S+$/, 'Please enter a valid email'],
+    index: true
   },
   
-  // User's password (will be hashed before storing, minimum 6 characters)
+  // User's password (hashed before storing)
   password: {
     type: String,
-    required: true,
-    minlength: 6
+    required: [true, 'Password is required'],
+    minlength: [6, 'Password must be at least 6 characters']
   },
   
-  // Total points earned across all games (starts at 0)
+  // Total points earned across all games
   totalPoints: {
     type: Number,
-    default: 0
+    default: 0,
+    min: 0
   },
   
-  // Account creation timestamp
+  // Timestamps
   createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  
+  updatedAt: {
     type: Date,
     default: Date.now
   }
 });
 
-/**
- * Pre-save middleware: Hash password before saving to database
- * Only hashes if password is new or modified to avoid double-hashing
- */
+// Update timestamp on save and hash password
 userSchema.pre('save', async function() {
-  // Skip hashing if password hasn't been modified
+  this.updatedAt = new Date();
+  
+  // Only hash password if modified
   if (!this.isModified('password')) return;
   
-  // Hash password with salt rounds of 10 (good balance of security and performance)
+  // Hash password with salt rounds of 10
   this.password = await bcrypt.hash(this.password, 10);
 });
 
-/**
- * Instance method: Compare provided password with stored hash
- * @param {string} candidatePassword - Plain text password to verify
- * @returns {boolean} - True if password matches, false otherwise
- */
+// Compare password method
 userSchema.methods.comparePassword = async function(candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
-// Export the User model
+// Database Indexes for Performance
+userSchema.index({ totalPoints: -1 });  // Global leaderboard sorting
+
 export default mongoose.model('User', userSchema);

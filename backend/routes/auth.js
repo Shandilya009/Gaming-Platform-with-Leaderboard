@@ -41,9 +41,48 @@ router.post('/register', async (req, res) => {
   try {
     const { username, email, password } = req.body;
 
+    // Validate required fields
+    if (!username || !username.trim()) {
+      return res.status(400).json({ 
+        message: 'Username is required' 
+      });
+    }
+
+    if (username.trim().length < 3) {
+      return res.status(400).json({ 
+        message: 'Username must be at least 3 characters' 
+      });
+    }
+
+    if (!email || !email.trim()) {
+      return res.status(400).json({ 
+        message: 'Email is required' 
+      });
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ 
+        message: 'Please enter a valid email address' 
+      });
+    }
+
+    if (!password || !password.trim()) {
+      return res.status(400).json({ 
+        message: 'Password is required' 
+      });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ 
+        message: 'Password must be at least 6 characters' 
+      });
+    }
+
     // Check if user already exists with this email or username
     const existingUser = await User.findOne({ 
-      $or: [{ email }, { username }] 
+      $or: [{ email: email.trim().toLowerCase() }, { username: username.trim() }] 
     });
     
     if (existingUser) {
@@ -87,8 +126,21 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    // Validate required fields
+    if (!email || !email.trim()) {
+      return res.status(400).json({ 
+        message: 'Email is required' 
+      });
+    }
+
+    if (!password || !password.trim()) {
+      return res.status(400).json({ 
+        message: 'Password is required' 
+      });
+    }
+
     // Find user by email
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: email.trim().toLowerCase() });
     if (!user) {
       return res.status(401).json({ 
         message: 'Invalid email or password' 

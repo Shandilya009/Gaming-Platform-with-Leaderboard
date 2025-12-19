@@ -8,43 +8,66 @@ const gameSchema = new mongoose.Schema({
   // Game's unique name/title
   name: {
     type: String,
-    required: true,
+    required: [true, 'Game name is required'],
     unique: true,
     trim: true
   },
   
-  // Detailed description of the game and how to play
+  // Detailed description of the game
   description: {
     type: String,
-    required: true
+    required: [true, 'Game description is required']
   },
   
-  // Game difficulty level (affects scoring and user filtering)
+  // Game difficulty level
   difficulty: {
     type: String,
-    enum: ['easy', 'medium', 'hard'],
-    required: true
+    enum: {
+      values: ['easy', 'medium', 'hard'],
+      message: 'Difficulty must be easy, medium, or hard'
+    },
+    required: [true, 'Difficulty is required']
   },
   
-  // Game category/type (helps with filtering and organization)
+  // Game category/type
   type: {
     type: String,
-    enum: ['speed', 'logic', 'puzzle', 'memory', 'reflex'],
-    required: true
+    enum: {
+      values: ['speed', 'logic', 'puzzle', 'memory', 'reflex'],
+      message: 'Type must be speed, logic, puzzle, memory, or reflex'
+    },
+    required: [true, 'Game type is required']
   },
   
   // Popularity counter (incremented each time someone plays)
   popularity: {
     type: Number,
-    default: 0
+    default: 0,
+    min: 0
   },
   
-  // Game creation timestamp
+  // Timestamps
   createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  
+  updatedAt: {
     type: Date,
     default: Date.now
   }
 });
 
-// Export the Game model
+// Update timestamp on save
+gameSchema.pre('save', function(next) {
+  this.updatedAt = new Date();
+  next();
+});
+
+// Database Indexes for Performance
+gameSchema.index({ type: 1 });          // Filter by type
+gameSchema.index({ difficulty: 1 });    // Filter by difficulty
+gameSchema.index({ popularity: -1 });   // Sort by popularity
+gameSchema.index({ createdAt: -1 });    // Sort by newest
+
 export default mongoose.model('Game', gameSchema);

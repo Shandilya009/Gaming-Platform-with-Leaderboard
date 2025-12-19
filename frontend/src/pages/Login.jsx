@@ -14,14 +14,38 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    // Frontend validation
+    if (!email || !email.trim()) {
+      setError('Please enter your email');
+      return;
+    }
+
+    if (!password || !password.trim()) {
+      setError('Please enter your password');
+      return;
+    }
+
+    // Basic email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
+
     setLoading(true);
 
-    const result = await login(email, password);
+    const result = await login(email.trim(), password);
     
     if (result.success) {
       navigate('/dashboard');
     } else {
-      setError(result.message);
+      setError(result.message || 'Login failed. Please try again.');
     }
     
     setLoading(false);

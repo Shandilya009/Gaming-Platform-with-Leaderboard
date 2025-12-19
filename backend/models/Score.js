@@ -10,17 +10,24 @@ const scoreSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: [true, 'User ID is required']
   },
   
   // Reference to the game that was played
   gameId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Game',
-    required: true
+    required: [true, 'Game ID is required']
   },
   
-  // Raw gameplay metrics
+  // Legacy score field (for backward compatibility)
+  score: {
+    type: Number,
+    required: [true, 'Score is required'],
+    min: 0
+  },
+  
+  // Raw gameplay metrics (0-100 scale)
   speedScore: {
     type: Number,
     default: 0,
@@ -42,23 +49,19 @@ const scoreSchema = new mongoose.Schema({
     max: 100
   },
   
-  // Computed final score (weighted average)
-  // Formula: (speedScore * 0.4) + (accuracyScore * 0.4) + (consistencyScore * 0.2)
+  // Computed final score (weighted average with difficulty multiplier)
+  // Formula: (speedScore * 0.4) + (accuracyScore * 0.4) + (consistencyScore * 0.2) * difficultyMultiplier
   finalScore: {
     type: Number,
-    required: true
-  },
-  
-  // Legacy score field for backward compatibility
-  score: {
-    type: Number,
-    required: true
+    required: true,
+    min: 0
   },
   
   // Time taken to complete the game (in seconds)
   timeTaken: {
     type: Number,
-    default: 0
+    default: 0,
+    min: 0
   },
   
   // Game difficulty at time of play
@@ -68,7 +71,7 @@ const scoreSchema = new mongoose.Schema({
     default: 'medium'
   },
   
-  // When this score was achieved
+  // Timestamps
   createdAt: {
     type: Date,
     default: Date.now
@@ -81,9 +84,8 @@ const scoreSchema = new mongoose.Schema({
 });
 
 // Update timestamp on save
-scoreSchema.pre('save', function(next) {
+scoreSchema.pre('save', function() {
   this.updatedAt = new Date();
-  next();
 });
 
 /**
@@ -101,5 +103,4 @@ scoreSchema.index({ finalScore: -1 });
 // Compound index for user's best score per game
 scoreSchema.index({ userId: 1, gameId: 1, finalScore: -1 });
 
-// Export the Score model
 export default mongoose.model('Score', scoreSchema);

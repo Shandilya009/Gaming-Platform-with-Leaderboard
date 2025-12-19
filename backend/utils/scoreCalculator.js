@@ -3,15 +3,15 @@
  * Centralized score calculation logic for transparency and consistency
  */
 
-// Weightage configuration (easily modifiable)
-const SCORE_WEIGHTS = {
+// Weightage configuration
+export const SCORE_WEIGHTS = {
   speed: 0.4,      // 40% weight for speed
   accuracy: 0.4,   // 40% weight for accuracy
   consistency: 0.2 // 20% weight for consistency
 };
 
 // Difficulty multipliers
-const DIFFICULTY_MULTIPLIERS = {
+export const DIFFICULTY_MULTIPLIERS = {
   easy: 1.0,
   medium: 1.25,
   hard: 1.5
@@ -30,7 +30,7 @@ export const calculateFinalScore = (metrics, difficulty = 'medium') => {
   const { speedScore = 0, accuracyScore = 0, consistencyScore = 0 } = metrics;
   
   // Validate inputs (clamp to 0-100 range)
-  const clamp = (value) => Math.max(0, Math.min(100, value));
+  const clamp = (value) => Math.max(0, Math.min(100, Number(value) || 0));
   
   const validSpeed = clamp(speedScore);
   const validAccuracy = clamp(accuracyScore);
@@ -58,7 +58,7 @@ export const calculateFinalScore = (metrics, difficulty = 'medium') => {
  * @returns {Object} - Calculated metrics
  */
 export const calculateMetricsFromGameData = (gameData, gameType) => {
-  const { score, timeTaken, maxTime, correctAnswers, totalQuestions, attempts } = gameData;
+  const { score = 0, timeTaken = 0, maxTime = 60, correctAnswers = 0, totalQuestions = 0, attempts = 1 } = gameData;
   
   let speedScore = 0;
   let accuracyScore = 0;
@@ -67,24 +67,30 @@ export const calculateMetricsFromGameData = (gameData, gameType) => {
   switch (gameType) {
     case 'speed':
       // Speed games: faster = better
-      speedScore = maxTime ? Math.min(100, ((maxTime - timeTaken) / maxTime) * 100 + 50) : 70;
+      speedScore = maxTime && timeTaken ? Math.min(100, ((maxTime - timeTaken) / maxTime) * 100 + 50) : 70;
       accuracyScore = score ? Math.min(100, score) : 50;
       consistencyScore = 70; // Default for speed games
       break;
       
     case 'logic':
-    case 'puzzle':
-      // Logic/Puzzle games: accuracy matters most
-      accuracyScore = totalQuestions ? (correctAnswers / totalQuestions) * 100 : score;
-      speedScore = maxTime ? Math.min(100, ((maxTime - timeTaken) / maxTime) * 100 + 30) : 60;
+      // Logic games: accuracy matters most
+      accuracyScore = totalQuestions ? (correctAnswers / totalQuestions) * 100 : Math.min(100, score * 2);
+      speedScore = maxTime && timeTaken ? Math.min(100, ((maxTime - timeTaken) / maxTime) * 100 + 30) : 60;
       consistencyScore = attempts ? Math.max(0, 100 - (attempts - 1) * 10) : 80;
+      break;
+      
+    case 'puzzle':
+      // Puzzle games: accuracy and consistency
+      accuracyScore = totalQuestions ? (correctAnswers / totalQuestions) * 100 : Math.min(100, score * 2);
+      consistencyScore = attempts ? Math.max(0, 100 - (attempts - 1) * 15) : 75;
+      speedScore = maxTime && timeTaken ? Math.min(100, ((maxTime - timeTaken) / maxTime) * 100 + 20) : 50;
       break;
       
     case 'memory':
       // Memory games: accuracy and consistency
-      accuracyScore = totalQuestions ? (correctAnswers / totalQuestions) * 100 : score;
+      accuracyScore = totalQuestions ? (correctAnswers / totalQuestions) * 100 : Math.min(100, score * 3);
       consistencyScore = attempts ? Math.max(0, 100 - (attempts - 1) * 15) : 75;
-      speedScore = maxTime ? Math.min(100, ((maxTime - timeTaken) / maxTime) * 100 + 20) : 50;
+      speedScore = maxTime && timeTaken ? Math.min(100, ((maxTime - timeTaken) / maxTime) * 100 + 20) : 50;
       break;
       
     case 'reflex':
@@ -95,16 +101,16 @@ export const calculateMetricsFromGameData = (gameData, gameType) => {
       break;
       
     default:
-      // Default calculation
-      speedScore = Math.min(100, score * 0.5);
-      accuracyScore = Math.min(100, score * 0.7);
+      // Default calculation based on score
+      speedScore = Math.min(100, score * 0.8);
+      accuracyScore = Math.min(100, score * 1.2);
       consistencyScore = 70;
   }
   
   return {
-    speedScore: Math.round(speedScore),
-    accuracyScore: Math.round(accuracyScore),
-    consistencyScore: Math.round(consistencyScore)
+    speedScore: Math.round(Math.max(0, Math.min(100, speedScore))),
+    accuracyScore: Math.round(Math.max(0, Math.min(100, accuracyScore))),
+    consistencyScore: Math.round(Math.max(0, Math.min(100, consistencyScore)))
   };
 };
 
@@ -114,23 +120,27 @@ export const calculateMetricsFromGameData = (gameData, gameType) => {
  * @returns {Object} - Formatted breakdown for UI
  */
 export const getScoreBreakdown = (score) => {
+  const speedVal = score.speedScore || 0;
+  const accuracyVal = score.accuracyScore || 0;
+  const consistencyVal = score.consistencyScore || 0;
+  
   return {
     speed: {
-      value: score.speedScore,
+      value: speedVal,
       weight: SCORE_WEIGHTS.speed * 100,
-      contribution: Math.round(score.speedScore * SCORE_WEIGHTS.speed)
+      contribution: Math.round(speedVal * SCORE_WEIGHTS.speed)
     },
     accuracy: {
-      value: score.accuracyScore,
+      value: accuracyVal,
       weight: SCORE_WEIGHTS.accuracy * 100,
-      contribution: Math.round(score.accuracyScore * SCORE_WEIGHTS.accuracy)
+      contribution: Math.round(accuracyVal * SCORE_WEIGHTS.accuracy)
     },
     consistency: {
-      value: score.consistencyScore,
+      value: consistencyVal,
       weight: SCORE_WEIGHTS.consistency * 100,
-      contribution: Math.round(score.consistencyScore * SCORE_WEIGHTS.consistency)
+      contribution: Math.round(consistencyVal * SCORE_WEIGHTS.consistency)
     },
-    total: score.finalScore
+    total: score.finalScore || score.score || 0
   };
 };
 

@@ -17,18 +17,51 @@ function Register() {
     e.preventDefault();
     setError('');
 
+    // Frontend validation
+    if (!username || !username.trim()) {
+      setError('Please enter a username');
+      return;
+    }
+
+    if (username.trim().length < 3) {
+      setError('Username must be at least 3 characters');
+      return;
+    }
+
+    if (!email || !email.trim()) {
+      setError('Please enter your email');
+      return;
+    }
+
+    // Basic email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
+    if (!password || !password.trim()) {
+      setError('Please enter a password');
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError('Passwords do not match');
       return;
     }
 
     setLoading(true);
-    const result = await register(username, email, password);
+    const result = await register(username.trim(), email.trim(), password);
     
     if (result.success) {
       navigate('/dashboard');
     } else {
-      setError(result.message);
+      setError(result.message || 'Registration failed. Please try again.');
     }
     
     setLoading(false);
