@@ -390,25 +390,7 @@ function Dashboard() {
             </div>
           </div>
 
-          <div className="quick-actions-card">
-            <div className="card-header">
-              <h3>Quick Actions</h3>
-            </div>
-            <div className="quick-actions-list">
-              <Link to="/games" className="action-button action-primary">
-                <span className="action-icon">🎮</span>
-                <span className="action-text">Play Games</span>
-              </Link>
-              <Link to="/leaderboard" className="action-button action-success">
-                <span className="action-icon">🏆</span>
-                <span className="action-text">View Leaderboard</span>
-              </Link>
-              <Link to="/my-scores" className="action-button action-purple">
-                <span className="action-icon">📊</span>
-                <span className="action-text">My Statistics</span>
-              </Link>
-            </div>
-          </div>
+
         </div>
       </main>
     </div>
