@@ -125,6 +125,116 @@ router.get('/stats', async (req, res) => {
 });
 
 // ============================================
+// USER MANAGEMENT
+// ============================================
+
+/**
+ * GET /admin/users
+ * Get all users with pagination and filters
+ */
+router.get('/users', async (req, res) => {
+  try {
+    const { 
+      page = 1, 
+      limit = 15, 
+      search = '',
+      status = '',
+      role = '',
+      sort = 'createdAt',
+      order = 'desc'
+    } = req.query;
+    
+    const filter = {};
+    
+    if (search) {
+      filter.$or = [
+        { username: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } }
+      ];
+    }
+    if (status) filter.status = status;
+    if (role) filter.role = role;
+    
+    const sortOptions = {};
+    sortOptions[sort] = order === 'asc' ? 1 : -1;
+    
+    const total = await User.countDocuments(filter);
+    
+    const users = await User.find(filter)
+      .sort(sortOptions)
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit))
+      .select('-password');
+    
+    res.json({
+      users,
+      pagination: {
+        total,
+        page: parseInt(page),
+        limit: parseInt(limit),
+        pages: Math.ceil(total / limit)
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+/**
+ * PUT /admin/users/:id
+ * Update user (ban, unban, change role)
+ */
+router.put('/users/:id', async (req, res) => {
+  try {
+    const { status, role, banReason } = req.body;
+    
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    if (status) user.status = status;
+    if (role) user.role = role;
+    if (banReason) user.banReason = banReason;
+    
+    await user.save();
+    
+    res.json({ message: 'User updated successfully', user });
+    
+  } catch (error) {
+    console.error('Error updating user:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+/**
+ * DELETE /admin/users/:id
+ * Delete user and their scores
+ */
+router.delete('/users/:id', async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    // Delete user's scores
+    await Score.deleteMany({ userId: req.params.id });
+    
+    // Delete user
+    await User.findByIdAndDelete(req.params.id);
+    
+    res.json({ message: 'User deleted successfully' });
+    
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// ============================================
 // SCORE MANAGEMENT
 // ============================================
 

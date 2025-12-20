@@ -147,21 +147,9 @@ function AdminUsers() {
             <span className="nav-icon">👥</span>
             {sidebarOpen && <span className="nav-text">Users</span>}
           </Link>
-          <Link to="/admin/games" className="nav-item">
-            <span className="nav-icon">🎮</span>
-            {sidebarOpen && <span className="nav-text">Games</span>}
-          </Link>
           <Link to="/admin/scores" className="nav-item">
             <span className="nav-icon">📈</span>
             {sidebarOpen && <span className="nav-text">Scores</span>}
-          </Link>
-          <Link to="/admin/logs" className="nav-item">
-            <span className="nav-icon">📋</span>
-            {sidebarOpen && <span className="nav-text">Activity Logs</span>}
-          </Link>
-          <Link to="/admin/settings" className="nav-item">
-            <span className="nav-icon">⚙️</span>
-            {sidebarOpen && <span className="nav-text">Settings</span>}
           </Link>
           <div className="nav-divider"></div>
           <Link to="/dashboard" className="nav-item">

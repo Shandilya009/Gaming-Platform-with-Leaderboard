@@ -71,6 +71,10 @@ function AdminDashboard() {
             <span className="nav-icon">📊</span>
             {sidebarOpen && <span className="nav-text">Dashboard</span>}
           </Link>
+          <Link to="/admin/users" className="nav-item">
+            <span className="nav-icon">👥</span>
+            {sidebarOpen && <span className="nav-text">Users</span>}
+          </Link>
           <Link to="/admin/scores" className="nav-item">
             <span className="nav-icon">📈</span>
             {sidebarOpen && <span className="nav-text">Scores</span>}

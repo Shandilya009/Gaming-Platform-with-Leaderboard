@@ -135,6 +135,11 @@ export const adminAPI = {
   // Dashboard stats
   getStats: () => api.get("/admin/stats"),
 
+  // User management
+  getUsers: (params) => api.get("/admin/users", { params }),
+  updateUser: (userId, data) => api.put(`/admin/users/${userId}`, data),
+  deleteUser: (userId) => api.delete(`/admin/users/${userId}`),
+
   // Score management
   getScores: (params) => api.get("/admin/scores", { params }),
   deleteScore: (scoreId) => api.delete(`/admin/scores/${scoreId}`),
