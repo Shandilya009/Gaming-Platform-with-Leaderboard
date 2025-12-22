@@ -2,10 +2,12 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { adminAPI } from "../../api/api";
 import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
 import "./Admin.css";
 
 function AdminUsers() {
   const { user, logout } = useAuth();
+  const { isDarkMode, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -184,6 +186,11 @@ function AdminUsers() {
             <p className="header-subtitle">
               {pagination.total} users total
             </p>
+          </div>
+          <div className="header-actions">
+            <button className="theme-toggle" onClick={toggleTheme} title={isDarkMode ? "Light Mode" : "Dark Mode"}>
+              {isDarkMode ? "☀️" : "🌙"}
+            </button>
           </div>
         </div>
 

@@ -2,10 +2,12 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { adminAPI } from "../../api/api";
 import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
 import "./Admin.css";
 
 function AdminDashboard() {
   const { user, logout } = useAuth();
+  const { isDarkMode, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -111,9 +113,14 @@ function AdminDashboard() {
             <h1>📊 Admin Dashboard</h1>
             <p className="header-subtitle">Platform overview and statistics</p>
           </div>
-          <button className="btn-refresh" onClick={fetchStats}>
-            🔄 Refresh
-          </button>
+          <div className="header-actions">
+            <button className="theme-toggle" onClick={toggleTheme} title={isDarkMode ? "Light Mode" : "Dark Mode"}>
+              {isDarkMode ? "☀️" : "🌙"}
+            </button>
+            <button className="btn-refresh" onClick={fetchStats}>
+              🔄 Refresh
+            </button>
+          </div>
         </div>
 
         {/* Overview Stats */}

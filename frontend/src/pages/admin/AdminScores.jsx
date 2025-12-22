@@ -2,10 +2,12 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { adminAPI, gamesAPI } from "../../api/api";
 import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
 import "./Admin.css";
 
 function AdminScores() {
   const { user, logout } = useAuth();
+  const { isDarkMode, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [scores, setScores] = useState([]);
   const [games, setGames] = useState([]);
@@ -144,6 +146,11 @@ function AdminScores() {
           <div className="header-content">
             <h1>📈 Score Management</h1>
             <p className="header-subtitle">{pagination.total} scores total</p>
+          </div>
+          <div className="header-actions">
+            <button className="theme-toggle" onClick={toggleTheme} title={isDarkMode ? "Light Mode" : "Dark Mode"}>
+              {isDarkMode ? "☀️" : "🌙"}
+            </button>
           </div>
         </div>
 

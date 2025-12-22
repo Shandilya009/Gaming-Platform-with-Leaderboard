@@ -1157,3 +1157,229 @@
     white-space: nowrap;
   }
 }
+
+
+/* ============================================
+   ADMIN THEME SUPPORT - LIGHT/DARK MODE
+   ============================================ */
+
+/* Header Actions */
+.admin-header .header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Theme Toggle in Admin */
+.admin-main .theme-toggle {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  transition: all 0.3s ease;
+}
+
+.admin-main .theme-toggle:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+}
+
+/* Light Mode Admin Styles */
+body.light-mode .admin-layout {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+}
+
+body.light-mode .admin-sidebar {
+  background: #ffffff;
+  border-right-color: #e2e8f0;
+}
+
+body.light-mode .admin-main {
+  background: transparent;
+}
+
+body.light-mode .admin-header .header-content h1 {
+  color: #1e293b;
+}
+
+body.light-mode .header-subtitle {
+  color: #64748b;
+}
+
+body.light-mode .stat-card {
+  background: #ffffff;
+  border-color: #e2e8f0;
+}
+
+body.light-mode .stat-label {
+  color: #64748b !important;
+}
+
+body.light-mode .stat-value {
+  color: #1e293b !important;
+}
+
+body.light-mode .stat-trend {
+  color: #64748b !important;
+}
+
+body.light-mode .stat-card-small {
+  background: #ffffff;
+  border-color: #e2e8f0;
+}
+
+body.light-mode .stat-value-small {
+  color: #1e293b !important;
+}
+
+body.light-mode .stat-label-small {
+  color: #64748b !important;
+}
+
+body.light-mode .admin-card {
+  background: #ffffff;
+  border-color: #e2e8f0;
+}
+
+body.light-mode .card-header h3 {
+  color: #1e293b;
+}
+
+body.light-mode .list-item {
+  background: #f8fafc;
+}
+
+body.light-mode .list-title {
+  color: #1e293b;
+}
+
+body.light-mode .list-subtitle {
+  color: #64748b;
+}
+
+body.light-mode .list-value {
+  color: #10b981;
+}
+
+body.light-mode .list-date {
+  color: #64748b;
+}
+
+body.light-mode .admin-table-container {
+  background: #ffffff;
+  border-color: #e2e8f0;
+}
+
+body.light-mode .admin-table th {
+  background: #f8fafc;
+  color: #64748b;
+}
+
+body.light-mode .admin-table td {
+  color: #1e293b;
+  border-bottom-color: #e2e8f0;
+}
+
+body.light-mode .admin-table tr:hover {
+  background: #f8fafc;
+}
+
+body.light-mode .filters-bar input,
+body.light-mode .filters-bar select {
+  background: #ffffff;
+  border-color: #e2e8f0;
+  color: #1e293b;
+}
+
+body.light-mode .btn-refresh {
+  background: #ffffff;
+  border-color: #e2e8f0;
+  color: #1e293b;
+}
+
+body.light-mode .btn-clear {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+body.light-mode .pagination button {
+  background: #ffffff;
+  border-color: #e2e8f0;
+  color: #1e293b;
+}
+
+body.light-mode .modal-content {
+  background: #ffffff;
+  border-color: #e2e8f0;
+}
+
+body.light-mode .modal-content h3 {
+  color: #1e293b;
+}
+
+body.light-mode .modal-content p {
+  color: #64748b;
+}
+
+body.light-mode .modal-textarea {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  color: #1e293b;
+}
+
+body.light-mode .nav-item {
+  color: #64748b !important;
+}
+
+body.light-mode .nav-item .nav-text {
+  color: #64748b !important;
+  -webkit-text-fill-color: #64748b !important;
+}
+
+body.light-mode .nav-item:hover {
+  background: rgba(99, 102, 241, 0.1);
+}
+
+body.light-mode .nav-item.active {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white !important;
+}
+
+body.light-mode .nav-item.active .nav-text {
+  color: white !important;
+  -webkit-text-fill-color: white !important;
+}
+
+body.light-mode .sidebar-header {
+  border-bottom-color: #e2e8f0;
+}
+
+body.light-mode .sidebar-user {
+  border-top-color: #e2e8f0;
+}
+
+body.light-mode .user-name {
+  color: #1e293b;
+}
+
+body.light-mode .user-role {
+  color: #64748b;
+}
+
+body.light-mode .admin-main .theme-toggle {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+  color: #1e293b;
+}
+
+body.light-mode .admin-main .theme-toggle:hover {
+  background: #6366f1;
+  color: white;
+}

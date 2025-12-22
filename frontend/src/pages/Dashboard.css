@@ -2,14 +2,15 @@
 .dashboard-layout {
   display: flex;
   min-height: 100vh;
-  background: linear-gradient(135deg, #fafafa 0%, #fff5f0 100%);
+  background: var(--bg-primary);
+  transition: background-color 0.3s ease;
 }
 
 /* Sidebar Styles */
 .dashboard-sidebar {
   width: 280px;
-  background: white;
-  border-right: 3px solid rgba(255, 107, 53, 0.1);
+  background: var(--bg-card);
+  border-right: 3px solid var(--border-color);
   display: flex;
   flex-direction: column;
   position: fixed;
@@ -18,7 +19,7 @@
   top: 0;
   transition: all 0.3s ease;
   z-index: 100;
-  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.05);
+  box-shadow: 4px 0 24px var(--shadow-color);
 }
 
 .dashboard-sidebar.closed {
@@ -277,6 +278,22 @@
 
 .stat-card-purple {
   border-color: rgba(139, 92, 246, 0.2);
+  background: linear-gradient(135deg, #8b5cf6, #a855f7);
+}
+
+.stat-card-purple .stat-label {
+  color: rgba(255, 255, 255, 0.9) !important;
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.stat-card-purple .stat-value {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+.stat-card-purple .stat-trend {
+  color: rgba(255, 255, 255, 0.85) !important;
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.85) !important;
 }
 
 .stat-icon {
@@ -308,8 +325,9 @@
 
 .stat-label {
   font-size: 0.95rem;
-  color: #6C757D;
-  font-weight: 600;
+  color: #374151 !important;
+  -webkit-text-fill-color: #374151 !important;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 8px;
@@ -318,23 +336,27 @@
 .stat-value {
   font-size: 2.5rem;
   font-weight: 800;
-  color: #2D2D2D !important;
-  -webkit-text-fill-color: #2D2D2D !important;
+  color: #1f2937 !important;
+  -webkit-text-fill-color: #1f2937 !important;
   line-height: 1;
   margin-bottom: 8px;
 }
 
 .stat-trend {
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 700;
+  color: #4b5563 !important;
+  -webkit-text-fill-color: #4b5563 !important;
 }
 
 .stat-trend.positive {
-  color: var(--success-color);
+  color: #059669 !important;
+  -webkit-text-fill-color: #059669 !important;
 }
 
 .stat-trend.neutral {
-  color: var(--text-secondary);
+  color: #6b7280 !important;
+  -webkit-text-fill-color: #6b7280 !important;
 }
 
 /* Content Grid */
@@ -386,7 +408,8 @@
 .card-header h3 {
   font-size: 1.5rem;
   font-weight: 800;
-  color: var(--text-primary);
+  color: #1f2937 !important;
+  -webkit-text-fill-color: #1f2937 !important;
 }
 
 .chart-filter {
@@ -461,7 +484,8 @@
   left: 50%;
   transform: translateX(-50%);
   font-weight: 800;
-  color: var(--text-primary);
+  color: #1f2937 !important;
+  -webkit-text-fill-color: #1f2937 !important;
   font-size: 0.95rem;
   white-space: nowrap;
 }
@@ -477,7 +501,8 @@
   flex: 1;
   text-align: center;
   font-weight: 600;
-  color: var(--text-secondary);
+  color: #4b5563 !important;
+  -webkit-text-fill-color: #4b5563 !important;
   font-size: 0.875rem;
 }
 
@@ -524,13 +549,15 @@
 
 .activity-title {
   font-weight: 700;
-  color: var(--text-primary);
+  color: #1f2937 !important;
+  -webkit-text-fill-color: #1f2937 !important;
   margin-bottom: 4px;
 }
 
 .activity-time {
   font-size: 0.875rem;
-  color: var(--text-secondary);
+  color: #6b7280 !important;
+  -webkit-text-fill-color: #6b7280 !important;
 }
 
 .activity-score {
@@ -582,13 +609,15 @@
 .category-name {
   font-weight: 800;
   font-size: 1.2rem;
-  color: var(--text-primary);
+  color: #1f2937 !important;
+  -webkit-text-fill-color: #1f2937 !important;
   margin-bottom: 8px;
 }
 
 .category-count {
   font-size: 0.875rem;
-  color: var(--text-secondary);
+  color: #6b7280 !important;
+  -webkit-text-fill-color: #6b7280 !important;
   font-weight: 600;
 }
 
@@ -797,7 +826,8 @@
 /* Last Updated Text */
 .last-updated {
   font-size: 0.85rem;
-  color: var(--text-secondary);
+  color: #6b7280 !important;
+  -webkit-text-fill-color: #6b7280 !important;
   font-weight: 500;
 }
 
@@ -900,7 +930,8 @@
 
 .leaderboard-player .player-name {
   font-weight: 700;
-  color: var(--text-primary);
+  color: #1f2937 !important;
+  -webkit-text-fill-color: #1f2937 !important;
 }
 
 .leaderboard-player .you-tag {
@@ -967,4 +998,210 @@
 .btn-logout:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4);
+}
+
+
+/* ============================================
+   TEXT VISIBILITY FIX - OVERRIDE ALL TEXT COLORS
+   ============================================ */
+
+/* Header subtitle */
+.header-subtitle {
+  color: #4b5563 !important;
+  -webkit-text-fill-color: #4b5563 !important;
+}
+
+/* Stat cards - ensure all text is visible */
+.stat-card .stat-label {
+  color: #374151 !important;
+  -webkit-text-fill-color: #374151 !important;
+}
+
+.stat-card .stat-value {
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827 !important;
+}
+
+.stat-card .stat-trend {
+  color: #6b7280 !important;
+  -webkit-text-fill-color: #6b7280 !important;
+}
+
+.stat-card .stat-trend.positive {
+  color: #059669 !important;
+  -webkit-text-fill-color: #059669 !important;
+}
+
+/* Purple stat card (Global Rank) - white text */
+.stat-card-purple .stat-label,
+.stat-card-purple .stat-value,
+.stat-card-purple .stat-trend,
+.stat-card-purple .stat-trend.positive {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+/* Card headers */
+.card-header h3 {
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827 !important;
+}
+
+/* Chart values and labels */
+.bar-value {
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827 !important;
+}
+
+.chart-labels span {
+  color: #374151 !important;
+  -webkit-text-fill-color: #374151 !important;
+}
+
+/* Activity items */
+.activity-title {
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827 !important;
+}
+
+.activity-time {
+  color: #6b7280 !important;
+  -webkit-text-fill-color: #6b7280 !important;
+}
+
+.activity-score {
+  color: #ea580c !important;
+  -webkit-text-fill-color: #ea580c !important;
+}
+
+/* Category items */
+.category-name {
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827 !important;
+}
+
+.category-count {
+  color: #6b7280 !important;
+  -webkit-text-fill-color: #6b7280 !important;
+}
+
+/* Leaderboard */
+.leaderboard-player .player-name {
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827 !important;
+}
+
+.leaderboard-points {
+  color: #7c3aed !important;
+  -webkit-text-fill-color: #7c3aed !important;
+}
+
+.leaderboard-rank {
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827 !important;
+}
+
+/* Last updated */
+.last-updated {
+  color: #6b7280 !important;
+  -webkit-text-fill-color: #6b7280 !important;
+}
+
+/* View all link */
+.view-all-link {
+  color: #ea580c !important;
+  -webkit-text-fill-color: #ea580c !important;
+}
+
+/* Empty state */
+.empty-state {
+  color: #6b7280 !important;
+  -webkit-text-fill-color: #6b7280 !important;
+}
+
+.empty-state p {
+  color: #6b7280 !important;
+  -webkit-text-fill-color: #6b7280 !important;
+}
+
+/* Sidebar text */
+.user-name {
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827 !important;
+}
+
+.user-points {
+  color: #6b7280 !important;
+  -webkit-text-fill-color: #6b7280 !important;
+}
+
+/* Nav items */
+.nav-item .nav-text {
+  color: #374151 !important;
+  -webkit-text-fill-color: #374151 !important;
+}
+
+.nav-item.active .nav-text {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+.nav-item:hover .nav-text {
+  color: #ea580c !important;
+  -webkit-text-fill-color: #ea580c !important;
+}
+
+.nav-item.active:hover .nav-text {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+
+/* ============================================
+   GLOBAL RANK CARD - FORCE WHITE TEXT
+   ============================================ */
+
+/* Target the purple/global rank card specifically */
+.stat-card.stat-card-purple,
+.stat-card.stat-card-purple.stat-card-clickable,
+a.stat-card.stat-card-purple {
+  background: linear-gradient(135deg, #8b5cf6, #a855f7) !important;
+}
+
+.stat-card.stat-card-purple .stat-label,
+.stat-card.stat-card-purple.stat-card-clickable .stat-label,
+a.stat-card.stat-card-purple .stat-label {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+.stat-card.stat-card-purple .stat-value,
+.stat-card.stat-card-purple.stat-card-clickable .stat-value,
+a.stat-card.stat-card-purple .stat-value {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+.stat-card.stat-card-purple .stat-trend,
+.stat-card.stat-card-purple.stat-card-clickable .stat-trend,
+a.stat-card.stat-card-purple .stat-trend,
+.stat-card.stat-card-purple .stat-trend.positive,
+.stat-card.stat-card-purple.stat-card-clickable .stat-trend.positive,
+a.stat-card.stat-card-purple .stat-trend.positive {
+  color: rgba(255, 255, 255, 0.9) !important;
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.stat-card.stat-card-purple .stat-icon,
+.stat-card.stat-card-purple.stat-card-clickable .stat-icon,
+a.stat-card.stat-card-purple .stat-icon {
+  background: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Override any hover states */
+.stat-card.stat-card-purple:hover .stat-trend,
+.stat-card.stat-card-purple.stat-card-clickable:hover .stat-trend,
+a.stat-card.stat-card-purple:hover .stat-trend {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
 }

@@ -1,4 +1,5 @@
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect, useCallback } from "react";
 import { scoresAPI, gamesAPI } from "../api/api";
@@ -9,6 +10,7 @@ import "./Dashboard.css";
  */
 function Dashboard() {
   const { user, logout, refreshUser } = useAuth();
+  const { isDarkMode, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   const [recentScores, setRecentScores] = useState([]);
@@ -214,13 +216,13 @@ function Dashboard() {
             <p className="header-subtitle">Here's your gaming performance overview</p>
           </div>
           <div className="header-actions">
+            <button className="theme-toggle" onClick={toggleTheme} title={isDarkMode ? "Light Mode" : "Dark Mode"}>
+              {isDarkMode ? "☀️" : "🌙"}
+            </button>
             <button className="btn-refresh" onClick={loadDashboardData} title="Refresh data">
               🔄
             </button>
             <Link to="/games" className="btn-play-now">Play Now</Link>
-            <button className="btn-logout" onClick={handleLogout} style={{ marginLeft: "12px" }}>
-              Logout
-            </button>
           </div>
         </div>
 
