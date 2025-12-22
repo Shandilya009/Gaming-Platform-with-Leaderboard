@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { authAPI } from '../api/api';
 
 /**
@@ -37,11 +37,30 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   /**
+   * Fetch fresh user data from server
+   */
+  const fetchUserData = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      
+      const response = await authAPI.getMe();
+      const userData = response.data.user;
+      
+      // Update localStorage and state with fresh data
+      localStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    }
+  }, []);
+
+  /**
    * Initialize authentication state on app load
    * Checks localStorage for existing token and user data
    */
   useEffect(() => {
-    const initializeAuth = () => {
+    const initializeAuth = async () => {
       try {
         // Check for stored authentication data
         const token = localStorage.getItem('token');
@@ -51,6 +70,17 @@ export const AuthProvider = ({ children }) => {
         if (token && userData) {
           const parsedUser = JSON.parse(userData);
           setUser(parsedUser);
+          
+          // Fetch fresh data from server to get updated role
+          try {
+            const response = await authAPI.getMe();
+            const freshUserData = response.data.user;
+            localStorage.setItem('user', JSON.stringify(freshUserData));
+            setUser(freshUserData);
+          } catch (err) {
+            // If fetch fails, use cached data
+            console.log('Using cached user data');
+          }
         }
       } catch (error) {
         // Handle corrupted localStorage data
@@ -64,6 +94,26 @@ export const AuthProvider = ({ children }) => {
 
     initializeAuth();
   }, []);
+
+  // Auto-refresh user data every 30 seconds to catch role changes
+  useEffect(() => {
+    if (!user) return;
+    
+    const interval = setInterval(() => {
+      fetchUserData();
+    }, 30000); // 30 seconds
+    
+    // Also refresh when window gains focus
+    const handleFocus = () => {
+      fetchUserData();
+    };
+    window.addEventListener('focus', handleFocus);
+    
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [user, fetchUserData]);
 
   /**
    * Login function
@@ -171,19 +221,11 @@ export const AuthProvider = ({ children }) => {
   };
 
   /**
-   * Refresh user data from localStorage
-   * Used to sync user data after updates from other components
+   * Refresh user data from server
+   * Used to sync user data after updates (like role changes)
    */
-  const refreshUser = () => {
-    try {
-      const userData = localStorage.getItem('user');
-      if (userData) {
-        const parsedUser = JSON.parse(userData);
-        setUser(parsedUser);
-      }
-    } catch (error) {
-      console.error('Error refreshing user data:', error);
-    }
+  const refreshUser = async () => {
+    await fetchUserData();
   };
 
   // Context value object containing all auth-related data and functions

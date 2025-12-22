@@ -78,6 +78,9 @@ export const authAPI = {
 
   // Login existing user
   login: (credentials) => api.post("/auth/login", credentials),
+
+  // Get current user data (refresh user info)
+  getMe: () => api.get("/auth/me"),
 };
 
 /**

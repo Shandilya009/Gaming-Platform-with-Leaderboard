@@ -1,6 +1,7 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
+import { authMiddleware } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -173,6 +174,23 @@ router.post('/login', async (req, res) => {
       message: 'Server error during login', 
       error: error.message 
     });
+  }
+});
+
+/**
+ * GET /auth/me
+ * Get current user data (for refreshing user info)
+ */
+router.get('/me', authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json({ user: formatUserResponse(user) });
+  } catch (error) {
+    console.error('Get user error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 

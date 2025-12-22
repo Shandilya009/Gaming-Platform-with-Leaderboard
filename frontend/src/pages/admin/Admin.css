@@ -200,14 +200,21 @@
 }
 
 .stat-content { flex: 1; }
-.stat-label { font-size: 13px; color: rgba(255, 255, 255, 0.6); margin-bottom: 4px; }
-.stat-value { font-size: 28px; font-weight: 700; color: #fff; }
-.stat-trend { font-size: 12px; color: #10b981; margin-top: 4px; }
+.stat-label { font-size: 13px; color: rgba(255, 255, 255, 0.9); margin-bottom: 4px; }
+.stat-value { font-size: 28px; font-weight: 700; color: #fff !important; }
+.stat-trend { font-size: 12px; color: rgba(255, 255, 255, 0.8); margin-top: 4px; }
 
 .stat-card-primary .stat-icon { background: rgba(99, 102, 241, 0.2); }
 .stat-card-success .stat-icon { background: rgba(16, 185, 129, 0.2); }
 .stat-card-warning .stat-icon { background: rgba(245, 158, 11, 0.2); }
 .stat-card-purple .stat-icon { background: rgba(139, 92, 246, 0.2); }
+
+/* Ensure all stat card text is white */
+.stat-card .stat-label,
+.stat-card .stat-value,
+.stat-card .stat-trend {
+  color: #fff !important;
+}
 
 /* Stats Row */
 .stats-row {
@@ -230,8 +237,8 @@
 }
 
 .stat-icon-small { font-size: 24px; }
-.stat-value-small { font-size: 20px; font-weight: 700; color: #fff; }
-.stat-label-small { font-size: 12px; color: rgba(255, 255, 255, 0.5); }
+.stat-value-small { font-size: 20px; font-weight: 700; color: #fff !important; }
+.stat-label-small { font-size: 12px; color: rgba(255, 255, 255, 0.8); }
 
 /* Admin Grid */
 .admin-grid {
